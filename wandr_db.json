@@ -1,0 +1,420 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "ntg",
+      "email": "ntgbro@gmail.com",
+      "password": "$2a$10$zz1areKOOgHNX7VH138Vn.QBf819RK4a4vY9XTxcOXNTXUIwSG72W",
+      "phone": "9791696638",
+      "bio": null,
+      "avatar": "🧭",
+      "created_at": "2026-05-21T04:57:55.244Z"
+    },
+    {
+      "id": 2,
+      "name": "charan",
+      "email": "charankumar@gmail.com",
+      "password": "$2a$10$H0o1KME7ngOBVGWNp3MJHeXK/ItL4eMTZJpQY29jnu65S3diK3bPC",
+      "phone": "9791696638",
+      "bio": null,
+      "avatar": "🧭",
+      "created_at": "2026-05-21T04:59:14.147Z"
+    },
+    {
+      "id": 3,
+      "name": "charan",
+      "email": "charankumarc969@gmail.com",
+      "password": "$2a$10$Fa4jqyGOKqpHWy.lUHqOS.b/EYu9ti2F4K2CfDMXDaKr/RvDHq3qC",
+      "phone": null,
+      "bio": null,
+      "avatar": "🧭",
+      "created_at": "2026-05-21T04:59:44.156Z"
+    }
+  ],
+  "trips": [
+    {
+      "id": 1,
+      "user_id": 3,
+      "destination": "kerala",
+      "days": 5,
+      "budget": 15000,
+      "travellers": "solo",
+      "preferences": [
+        "adventure",
+        "nature",
+        "luxury"
+      ],
+      "itinerary": {
+        "emoji": "🌿",
+        "tagline": "God's Own Country",
+        "weather": {
+          "icon": "🌦️",
+          "temp": "28°C",
+          "desc": "Warm & Coastal",
+          "tags": [
+            "Light Cotton",
+            "Umbrella",
+            "Mosquito Repellent",
+            "Camera"
+          ]
+        },
+        "attractions": [
+          "Alleppey Backwaters",
+          "Munnar Tea Gardens",
+          "Varkala Cliff Beach",
+          "Fort Kochi",
+          "Periyar Wildlife",
+          "Thrissur Pooram"
+        ],
+        "attractionEmojis": [
+          "🚤",
+          "🍃",
+          "🏖️",
+          "🏛️",
+          "🐘",
+          "🎺"
+        ],
+        "hotels": [
+          {
+            "n": "Kumarakom Lake Resort",
+            "p": "₹12,000/night",
+            "r": "★★★★★",
+            "e": "🏨"
+          },
+          {
+            "n": "Spice Village",
+            "p": "₹6,000/night",
+            "r": "★★★★★",
+            "e": "🌿"
+          },
+          {
+            "n": "Zostel Munnar",
+            "p": "₹700/night",
+            "r": "★★★★",
+            "e": "🏠"
+          }
+        ],
+        "restaurants": [
+          {
+            "n": "Dhe Puttu",
+            "p": "₹350/meal",
+            "r": "Kerala Style",
+            "e": "🍛"
+          },
+          {
+            "n": "Paragon",
+            "p": "₹500/meal",
+            "r": "Sea Food",
+            "e": "🐟"
+          },
+          {
+            "n": "Kerala Café",
+            "p": "₹250/meal",
+            "r": "Traditional",
+            "e": "🥘"
+          }
+        ],
+        "days": [
+          {
+            "title": "Alleppey Backwaters",
+            "activities": [
+              {
+                "time": "08:00",
+                "icon": "🚤",
+                "name": "Houseboat Check-In",
+                "desc": "Board your traditional kettuvallam houseboat",
+                "cost": "₹4,000"
+              },
+              {
+                "time": "09:00",
+                "icon": "🌿",
+                "name": "Backwater Cruise",
+                "desc": "Cruise through emerald green canals and paddy fields",
+                "cost": "Included"
+              },
+              {
+                "time": "13:00",
+                "icon": "🍛",
+                "name": "Lunch on Board",
+                "desc": "Fresh Kerala seafood cooked by your boat chef",
+                "cost": "Included"
+              },
+              {
+                "time": "15:00",
+                "icon": "🎣",
+                "name": "Village Visit",
+                "desc": "Explore coir-making villages along the backwaters",
+                "cost": "₹0"
+              },
+              {
+                "time": "18:00",
+                "icon": "🌅",
+                "name": "Sunset on Water",
+                "desc": "Watch the sun set over Vembanad Lake",
+                "cost": "₹0"
+              }
+            ]
+          },
+          {
+            "title": "Munnar Hills & Tea",
+            "activities": [
+              {
+                "time": "07:00",
+                "icon": "🍃",
+                "name": "Tea Garden Walk",
+                "desc": "Early morning walk through Tata tea estates",
+                "cost": "₹200"
+              },
+              {
+                "time": "10:00",
+                "icon": "🏭",
+                "name": "Tea Museum",
+                "desc": "Learn about Kerala's famous tea production",
+                "cost": "₹120"
+              },
+              {
+                "time": "12:00",
+                "icon": "🏔️",
+                "name": "Eravikulam National Park",
+                "desc": "Spot the endangered Nilgiri Tahr deer",
+                "cost": "₹125"
+              },
+              {
+                "time": "15:00",
+                "icon": "💧",
+                "name": "Attukal Waterfalls",
+                "desc": "Beautiful hidden waterfall in Munnar",
+                "cost": "₹0"
+              },
+              {
+                "time": "19:00",
+                "icon": "🍽️",
+                "name": "Dinner at Spice Garden",
+                "desc": "Authentic Kerala Sadhya meal",
+                "cost": "₹400"
+              }
+            ]
+          },
+          {
+            "title": "Fort Kochi & Heritage",
+            "activities": [
+              {
+                "time": "09:00",
+                "icon": "🏛️",
+                "name": "Fort Kochi Walk",
+                "desc": "Stroll through colonial-era streets with Dutch & Portuguese architecture",
+                "cost": "₹0"
+              },
+              {
+                "time": "10:30",
+                "icon": "🎣",
+                "name": "Chinese Fishing Nets",
+                "desc": "Iconic cantilevered fishing nets — a symbol of Kochi",
+                "cost": "₹0"
+              },
+              {
+                "time": "12:00",
+                "icon": "⛪",
+                "name": "St. Francis Church",
+                "desc": "Oldest European church in India, where Vasco da Gama was buried",
+                "cost": "₹0"
+              },
+              {
+                "time": "14:00",
+                "icon": "🍛",
+                "name": "Lunch at Dhe Puttu",
+                "desc": "Authentic Kerala meals — puttu, kadala curry & fish fry",
+                "cost": "₹350"
+              },
+              {
+                "time": "16:00",
+                "icon": "🎭",
+                "name": "Kathakali Performance",
+                "desc": "Classical Kerala dance-drama with elaborate costumes",
+                "cost": "₹300"
+              },
+              {
+                "time": "19:00",
+                "icon": "🌊",
+                "name": "Marine Drive Stroll",
+                "desc": "Evening walk along the scenic Kochi waterfront",
+                "cost": "₹0"
+              }
+            ]
+          },
+          {
+            "title": "Varkala Cliff Beach",
+            "activities": [
+              {
+                "time": "08:00",
+                "icon": "🏖️",
+                "name": "Varkala Cliff",
+                "desc": "Stunning red laterite cliffs overlooking the Arabian Sea",
+                "cost": "₹0"
+              },
+              {
+                "time": "10:00",
+                "icon": "🌊",
+                "name": "Beach Swim",
+                "desc": "Swim in the clear waters at Papanasam Beach",
+                "cost": "₹0"
+              },
+              {
+                "time": "12:00",
+                "icon": "🧘",
+                "name": "Cliff-top Yoga",
+                "desc": "Morning yoga session with panoramic ocean views",
+                "cost": "₹300"
+              },
+              {
+                "time": "14:00",
+                "icon": "🥥",
+                "name": "Cliff Café Lunch",
+                "desc": "Fresh coconut, grilled fish and tropical juices",
+                "cost": "₹400"
+              },
+              {
+                "time": "16:00",
+                "icon": "🛕",
+                "name": "Janardhana Swami Temple",
+                "desc": "Ancient 2000-year-old Vishnu temple by the sea",
+                "cost": "₹0"
+              },
+              {
+                "time": "18:30",
+                "icon": "🌅",
+                "name": "Sunset at the Cliff",
+                "desc": "One of Kerala's most breathtaking sunsets",
+                "cost": "₹0"
+              }
+            ]
+          },
+          {
+            "title": "Periyar Wildlife Sanctuary",
+            "activities": [
+              {
+                "time": "06:30",
+                "icon": "🐘",
+                "name": "Periyar Boat Safari",
+                "desc": "Spot wild elephants, bison and deer from a boat on Periyar Lake",
+                "cost": "₹150"
+              },
+              {
+                "time": "09:00",
+                "icon": "🌿",
+                "name": "Jungle Trek",
+                "desc": "Guided nature walk through spice plantations and forest trails",
+                "cost": "₹500"
+              },
+              {
+                "time": "13:00",
+                "icon": "🍛",
+                "name": "Spice Garden Lunch",
+                "desc": "Lunch surrounded by cardamom, pepper and cinnamon plants",
+                "cost": "₹400"
+              },
+              {
+                "time": "15:00",
+                "icon": "🌶️",
+                "name": "Spice Market",
+                "desc": "Buy authentic Thekkady spices — cardamom, pepper, vanilla",
+                "cost": "₹800"
+              },
+              {
+                "time": "17:00",
+                "icon": "🎪",
+                "name": "Kalaripayattu Show",
+                "desc": "Ancient Kerala martial art performance",
+                "cost": "₹200"
+              }
+            ]
+          },
+          {
+            "title": "Kovalam Beach & Ayurveda",
+            "activities": [
+              {
+                "time": "08:00",
+                "icon": "🏖️",
+                "name": "Kovalam Lighthouse Beach",
+                "desc": "Famous crescent beach with a working lighthouse",
+                "cost": "₹0"
+              },
+              {
+                "time": "10:00",
+                "icon": "💆",
+                "name": "Ayurvedic Massage",
+                "desc": "Traditional Kerala Abhyanga full-body oil massage",
+                "cost": "₹1,500"
+              },
+              {
+                "time": "13:00",
+                "icon": "🦞",
+                "name": "Lobster Lunch",
+                "desc": "Fresh lobster and prawn at a beachside shack",
+                "cost": "₹700"
+              },
+              {
+                "time": "15:00",
+                "icon": "⛵",
+                "name": "Boat Ride",
+                "desc": "Scenic boat ride along the Kovalam coastline",
+                "cost": "₹300"
+              },
+              {
+                "time": "18:00",
+                "icon": "🌅",
+                "name": "Lighthouse Sunset",
+                "desc": "Climb the lighthouse for a 360° sunset panorama",
+                "cost": "₹25"
+              }
+            ]
+          },
+          {
+            "title": "Wayanad — Forests & Waterfalls",
+            "activities": [
+              {
+                "time": "07:00",
+                "icon": "🌿",
+                "name": "Chembra Peak Trek",
+                "desc": "Trek to the heart-shaped lake at the top of Chembra Peak",
+                "cost": "₹300"
+              },
+              {
+                "time": "11:00",
+                "icon": "💧",
+                "name": "Soochipara Waterfalls",
+                "desc": "Three-tiered waterfall hidden in the Wayanad forest",
+                "cost": "₹50"
+              },
+              {
+                "time": "14:00",
+                "icon": "🍛",
+                "name": "Tribal Cuisine Lunch",
+                "desc": "Authentic Wayanad tribal food experience",
+                "cost": "₹250"
+              },
+              {
+                "time": "16:00",
+                "icon": "🐘",
+                "name": "Muthanga Wildlife Sanctuary",
+                "desc": "Jeep safari — spot elephants, leopards and deer",
+                "cost": "₹400"
+              },
+              {
+                "time": "19:00",
+                "icon": "🔥",
+                "name": "Bonfire & Folk Music",
+                "desc": "Evening bonfire with local tribal folk performances",
+                "cost": "₹0"
+              }
+            ]
+          }
+        ]
+      },
+      "notes": null,
+      "created_at": "2026-05-21T05:51:49.655Z"
+    }
+  ],
+  "_userSeq": 3,
+  "_tripSeq": 1
+}

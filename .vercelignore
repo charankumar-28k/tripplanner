@@ -1,0 +1,9 @@
+node_modules
+wandr_db.json
+.env
+*.py
+patch_images.js
+patch_images.py
+theme_updater.py
+imgs/andaman2_files
+imgs/goa_files

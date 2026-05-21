@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wandr AI — Smart Trip Planner</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Brand palette */
+    --primary:   #1E90FF;
+    --secondary: #87CEEB;
+    --accent:    #00E5FF;
+    --bg:        #F5FBFF;
+    --text:      #0B1F33;
+
+    /* Semantic aliases */
+    --sand:       #F5FBFF;
+    --clay:       #87CEEB;
+    --terracotta: #1E90FF;
+    --forest:     #0B1F33;
+    --sage:       #00E5FF;
+    --night:      #F5FBFF;
+    --dusk:       #E8F4FF;
+    --ivory:      #FFFFFF;
+    --gold:       #00E5FF;
+    --mist:       rgba(30,144,255,0.10);
+    --glass:      rgba(255,255,255,0.55);
+    --radius:     20px;
+    --radius-sm:  12px;
+    --shadow:     0 16px 40px rgba(30,144,255,0.18);
+
+    /* Hero background gradient */
+    --bg-grad-1: rgba(30,144,255,0.18);
+    --bg-grad-2: rgba(0,229,255,0.14);
+    --bg-grad-3: #dbeeff;
+    --bg-grad-4: #c8e8ff;
+    --bg-grad-5: #F5FBFF;
+    --grid-c:    rgba(30,144,255,0.06);
+    --orb1:      rgba(30,144,255,0.18);
+    --orb2:      rgba(0,229,255,0.15);
+    --orb3:      rgba(135,206,235,0.20);
+    --eye-border: rgba(0,229,255,0.45);
+    --eye-bg:     rgba(0,229,255,0.08);
+    --sub-txt:    rgba(11,31,51,0.65);
+    --text-muted: rgba(11,31,51,0.55);
+    --text-faint: rgba(11,31,51,0.40);
+  }
+
+  [data-theme="dark"] {
+    --primary:    #1E90FF;
+    --secondary:  #87CEEB;
+    --accent:     #00E5FF;
+    --bg:         #060E1A;
+    --text:       #E8F4FF;
+    --sand:       #E8F4FF;
+    --clay:       #87CEEB;
+    --terracotta: #1E90FF;
+    --forest:     #0B1F33;
+    --sage:       #00E5FF;
+    --night:      #060E1A;
+    --dusk:       #0B1A2E;
+    --ivory:      #E8F4FF;
+    --gold:       #00E5FF;
+    --mist:       rgba(30,144,255,0.15);
+    --glass:      rgba(11,31,51,0.65);
+    --shadow:     0 16px 40px rgba(0,0,0,0.5);
+    --bg-grad-1:  rgba(30,144,255,0.25);
+    --bg-grad-2:  rgba(0,229,255,0.18);
+    --bg-grad-3:  #060E1A;
+    --bg-grad-4:  #0B1A2E;
+    --bg-grad-5:  #060E1A;
+    --grid-c:     rgba(30,144,255,0.08);
+    --orb1:       rgba(30,144,255,0.30);
+    --orb2:       rgba(0,229,255,0.22);
+    --orb3:       rgba(135,206,235,0.18);
+    --eye-border: rgba(0,229,255,0.50);
+    --eye-bg:     rgba(0,229,255,0.10);
+    --sub-txt:    rgba(232,244,255,0.75);
+    --text-muted: rgba(232,244,255,0.60);
+    --text-faint: rgba(232,244,255,0.35);
+  }
+ 
+  * { margin:0; padding:0; box-sizing:border-box; }
+ 
+  html { scroll-behavior: smooth; }
+ 
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+ 
+  /* Custom cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--gold);
+    border-radius: 50%;
+    position: fixed; top:0; left:0;
+    pointer-events: none;
+    z-index: 99999;
+    transition: transform 0.1s ease;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--gold);
+    border-radius: 50%;
+    position: fixed; top:0; left:0;
+    pointer-events: none;
+    z-index: 99998;
+    transition: transform 0.18s ease, opacity 0.2s;
+    opacity: 0.6;
+  }
+ 
+  /* Noise texture overlay */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none;
+    z-index:9999;
+    opacity:0.4;
+  }
+ 
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top:0; left:0; right:0; z-index:1000;
+    display: flex; align-items:center; justify-content:space-between;
+    padding: 20px 48px;
+    backdrop-filter: blur(20px);
+    background: rgba(15,26,10,0.7);
+    border-bottom: 1px solid rgba(0, 200, 255, 0.08);
+    transition: padding 0.3s;
+  }
+  nav.scrolled { padding: 14px 48px; }
+ 
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--pink-primary);
+    background: var(--pink-soft);
+    border-color: var(--pink-dark);
+  }
+  .nav-logo span { color: var(--gold); font-style:italic; }
+ 
+  .nav-links { display:flex; gap:36px; list-style:none; }
+  .nav-links a {
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(11,31,51,0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+ 
+  .nav-cta {
+    background: var(--terracotta);
+    color: var(--ivory) !important;
+    padding: 10px 24px;
+    border-radius: 40px;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    font-size: 0.78rem !important;
+  }
+  .nav-cta:hover { background: var(--clay) !important; color: var(--ivory) !important; }
+ 
+  /* ── HERO ── */
+  #home {
+    min-height: 100vh;
+    display: flex; align-items:center; justify-content:center;
+    position: relative;
+    overflow: hidden;
+  }
+ 
+  .hero-bg {
+    position: absolute; inset:0;
+    background:
+      linear-gradient(160deg, rgba(11,31,51,0.7) 0%, rgba(11,31,51,0.4) 60%, rgba(11,31,51,0.6) 100%),
+      url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&auto=format&fit=crop') center/cover no-repeat;
+  }
+ 
+  .hero-grid {
+    position: absolute; inset:0;
+    background-image:
+      linear-gradient(var(--grid-c) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-c) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+  }
+ 
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .orb1 { width:500px; height:500px; background:var(--orb1); top:-100px; right:-50px; animation-delay:0s; }
+  .orb2 { width:350px; height:350px; background:var(--orb2); bottom:-50px; left:-80px; animation-delay:-3s; }
+  .orb3 { width:250px; height:250px; background:var(--orb3); top:40%; left:40%; animation-delay:-5s; }
+ 
+  @keyframes orbFloat {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+  }
+ 
+  .hero-content {
+    position: relative; z-index:2;
+    text-align: center;
+    max-width: 900px;
+    padding: 0 24px;
+    animation: heroReveal 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+ 
+  @keyframes heroReveal {
+    from { opacity:0; transform: translateY(40px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+ 
+  .hero-eyebrow {
+    display: inline-flex; align-items:center; gap:10px;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 28px;
+    padding: 8px 20px;
+    border: 1px solid var(--eye-border);
+    border-radius: 40px;
+    background: var(--eye-bg);
+    animation: heroReveal 1.2s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .hero-eyebrow .dot { width:6px; height:6px; background:var(--gold); border-radius:50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+ 
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3.2rem, 8vw, 7rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    animation: heroReveal 1.2s 0.2s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .hero-title em { color: var(--gold); font-style: italic; }
+  .hero-title .line2 { color: var(--sage); }
+ 
+  .hero-sub {
+    font-size: 1.1rem;
+    color: #ffffff;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.45);
+    max-width: 540px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    font-weight: 400;
+    animation: heroReveal 1.2s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+  }
+ 
+  .hero-actions {
+    display: flex; gap:16px; justify-content:center; flex-wrap:wrap;
+    animation: heroReveal 1.2s 0.4s cubic-bezier(0.16,1,0.3,1) both;
+  }
+ 
+  .btn-primary {
+    background: var(--terracotta);
+    color: var(--ivory);
+    padding: 16px 36px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: none;
+    cursor: none;
+    transition: all 0.3s;
+    display: flex; align-items:center; gap:10px;
+  }
+  .btn-primary:hover { background: var(--clay); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(212,82,42,0.4); }
+ 
+  .btn-ghost {
+    background: transparent;
+    color: var(--sand);
+    padding: 16px 36px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 1px solid rgba(245,236,215,0.25);
+    cursor: none;
+    transition: all 0.3s;
+    display: flex; align-items:center; gap:10px;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); background: rgba(232,184,75,0.05); }
+ 
+  .hero-stats {
+    display: flex; gap:48px; justify-content:center; margin-top:64px;
+    border-top: 1px solid rgba(245,236,215,0.08); padding-top:40px;
+    animation: heroReveal 1.2s 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .hero-stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight:900;
+    color: #ffffff;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+  }
+  .hero-stat .label { font-size:0.75rem; color:#ffffff; opacity:0.85; letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; text-shadow: 0 1px 6px rgba(0,0,0,0.4); }
+ 
+  /* ── FEATURES ── */
+  .features-section {
+    padding: 120px 48px;
+    position: relative;
+  }
+  .features-section::before {
+    content:'';
+    position:absolute; top:0; left:50%;transform:translateX(-50%);
+    width:1px; height:100%; background:linear-gradient(to bottom,transparent,rgba(245,236,215,0.1),transparent);
+  }
+ 
+  .section-header {
+    text-align:center; margin-bottom:72px;
+  }
+  .section-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--sage);
+    margin-bottom:16px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight:900;
+    letter-spacing:-0.02em;
+    line-height:1.1;
+  }
+  .section-title em { color:var(--gold); font-style:italic; }
+ 
+  .features-grid {
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    gap:24px;
+    max-width:1100px; margin:0 auto;
+  }
+ 
+  .feat-card {
+    background: var(--glass);
+    border: 1px solid rgba(245,236,215,0.08);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    position:relative; overflow:hidden;
+    backdrop-filter: blur(10px);
+  }
+  .feat-card::before {
+    content:'';
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse 120% 120% at var(--mx,50%) var(--my,50%), rgba(232,184,75,0.06), transparent 60%);
+    opacity:0; transition:opacity 0.4s;
+  }
+  .feat-card:hover::before { opacity:1; }
+  .feat-card:hover { border-color:rgba(232,184,75,0.25); transform:translateY(-6px); box-shadow:0 24px 60px rgba(0,0,0,0.3); }
+ 
+  .feat-icon {
+    width:52px; height:52px;
+    background: rgba(196,120,58,0.15);
+    border: 1px solid rgba(196,120,58,0.3);
+    border-radius: 14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.4rem;
+    margin-bottom:24px;
+  }
+  .feat-title { font-size:1.05rem; font-weight:600; margin-bottom:10px; }
+  .feat-desc { font-size:0.88rem; color:var(--text-muted); line-height:1.7; }
+ 
+  /* ── DESTINATIONS ── */
+  #destinations {
+    padding: 100px 48px;
+    background: var(--dusk);
+  }
+ 
+  .dest-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap:20px;
+    max-width:1200px; margin:0 auto;
+  }
+ 
+  .dest-card {
+    border-radius: var(--radius);
+    overflow:hidden;
+    position:relative;
+    cursor:none;
+    aspect-ratio: 4/3;
+    background: var(--dusk);
+    border: 1px solid rgba(245,236,215,0.06);
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .dest-card:hover { transform: scale(1.03); }
+ 
+  .dest-img {
+    width:100%; height:100%;
+    object-fit:cover;
+    transition:transform 0.6s ease;
+    display:block;
+  }
+  .dest-card:hover .dest-img { transform:scale(1.08); }
+ 
+  .dest-overlay {
+    position:absolute; inset:0;
+    background: linear-gradient(to top, rgba(15,26,10,0.9) 0%, rgba(15,26,10,0.3) 50%, transparent 100%);
+  }
+  .dest-info {
+    position:absolute; bottom:0; left:0; right:0;
+    padding:24px 20px 20px;
+  }
+  .dest-tag {
+    font-family:'DM Mono',monospace;
+    font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--gold); background:rgba(232,184,75,0.15);
+    padding:4px 10px; border-radius:20px;
+    display:inline-block; margin-bottom:8px;
+  }
+  .dest-name { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; }
+  .dest-meta { font-size:0.78rem; color:rgba(11,31,51,0.6); margin-top:4px; }
+ 
+  .dest-placeholder {
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:4rem;
+    background: linear-gradient(135deg, var(--dusk), var(--forest));
+  }
+ 
+  /* ── PLAN TRIP SECTION ── */
+  #plan {
+    padding: 120px 48px;
+    position:relative;
+  }
+  #plan::before {
+    content:'';
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(45,80,22,0.15), transparent);
+  }
+ 
+  .plan-container {
+    max-width:900px; margin:0 auto; position:relative; z-index:1;
+  }
+ 
+  .planner-card {
+    background: rgba(30,45,20,0.5);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(245,236,215,0.1);
+    border-radius: 24px;
+    padding: 52px 56px;
+    box-shadow: var(--shadow);
+  }
+ 
+  .planner-title {
+    font-family:'Playfair Display',serif;
+    font-size:2rem; font-weight:900;
+    margin-bottom:8px;
+  }
+  .planner-subtitle { color:var(--text-muted); font-size:0.9rem; margin-bottom:40px; }
+ 
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+  .form-row.full { grid-template-columns:1fr; }
+ 
+  .form-group { display:flex; flex-direction:column; gap:8px; }
+  .form-label {
+    font-size:0.75rem; font-weight:600;
+    letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--text-muted);
+  }
+ 
+  .form-input, .form-select {
+    background: rgba(30,144,255,0.05);
+    border: 1px solid rgba(30,144,255,0.2);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    color: var(--text);
+    font-family:'DM Sans',sans-serif;
+    font-size:0.95rem;
+    transition: all 0.3s;
+    outline:none;
+    cursor: none;
+  }
+  .form-input::placeholder { color:var(--text-faint); }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--primary);
+    background: rgba(30,144,255,0.08);
+    box-shadow: 0 0 0 3px rgba(30,144,255,0.12);
+  }
+  .form-select option { background: var(--dusk); color:var(--text); }
+ 
+  .preferences-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+    margin-bottom:20px;
+  }
+  .pref-btn {
+    background: rgba(30,144,255,0.05);
+    border: 1px solid rgba(30,144,255,0.15);
+    border-radius: var(--radius-sm);
+    padding: 12px 8px;
+    color: var(--text-muted);
+    font-family:'DM Sans',sans-serif;
+    font-size:0.82rem;
+    cursor:none;
+    transition:all 0.25s;
+    text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .pref-btn .pref-icon { font-size:1.4rem; }
+  .pref-btn.active, .pref-btn:hover {
+    background: rgba(196,120,58,0.15);
+    border-color: rgba(196,120,58,0.5);
+    color: var(--clay);
+  }
+ 
+  .voice-row {
+    display:flex; align-items:center; gap:16px;
+    margin-bottom:28px;
+  }
+  .voice-btn {
+    background: rgba(212,82,42,0.15);
+    border: 1px solid rgba(212,82,42,0.4);
+    border-radius: 50%;
+    width:52px; height:52px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem;
+    cursor:none;
+    transition:all 0.3s;
+    flex-shrink:0;
+    color:var(--terracotta);
+  }
+  .voice-btn:hover, .voice-btn.listening {
+    background: rgba(212,82,42,0.25);
+    border-color:var(--terracotta);
+    box-shadow:0 0 0 8px rgba(212,82,42,0.1);
+    animation: voicePulse 1s infinite;
+  }
+  @keyframes voicePulse {
+    0%,100%{box-shadow:0 0 0 0 rgba(212,82,42,0.3)}
+    50%{box-shadow:0 0 0 16px rgba(212,82,42,0)}
+  }
+  .voice-text { font-size:0.85rem; color:var(--text-muted); }
+  .voice-text strong { color:var(--text); display:block; font-size:0.9rem; }
+ 
+  .generate-btn {
+    width:100%;
+    background: linear-gradient(135deg, var(--terracotta), var(--clay));
+    color:var(--ivory);
+    border:none; border-radius:12px;
+    padding:18px;
+    font-family:'DM Sans',sans-serif;
+    font-size:1rem; font-weight:600;
+    cursor:none;
+    transition:all 0.3s;
+    display:flex; align-items:center; justify-content:center; gap:12px;
+    letter-spacing:0.04em;
+  }
+  .generate-btn:hover { transform:translateY(-2px); box-shadow:0 16px 50px rgba(212,82,42,0.35); }
+  .generate-btn:disabled { opacity:0.6; transform:none; cursor:not-allowed; }
+ 
+  /* ── RESULTS ── */
+  #results {
+    display:none;
+    padding:60px 48px;
+    background: var(--dusk);
+  }
+ 
+  .results-header {
+    max-width:1200px; margin:0 auto 48px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+  }
+  .results-title {
+    font-family:'Playfair Display',serif;
+    font-size:2.2rem; font-weight:900;
+  }
+  .results-title span { color:var(--gold); }
+  .results-meta { font-size:0.85rem; color:var(--text-muted); margin-top:6px; }
+ 
+  .results-layout {
+    max-width:1200px; margin:0 auto;
+    display:grid; grid-template-columns:1fr 380px; gap:32px;
+  }
+ 
+  /* Destination image banner */
+  .dest-banner {
+    border-radius: var(--radius);
+    overflow:hidden;
+    height:280px;
+    position:relative;
+    margin-bottom:28px;
+    background: var(--forest);
+  }
+  .dest-banner img { width:100%; height:100%; object-fit:cover; }
+  .dest-banner-overlay {
+    position:absolute; inset:0;
+    background:linear-gradient(to right, rgba(15,26,10,0.7), transparent);
+    display:flex; flex-direction:column; justify-content:flex-end;
+    padding:28px;
+  }
+  .dest-banner h2 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; }
+  .dest-banner p { color:rgba(245,236,215,0.7); font-size:0.9rem; margin-top:6px; }
+ 
+  /* Attraction photos */
+  .attraction-photos {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+    margin-bottom:32px;
+  }
+  .attraction-photo {
+    border-radius:10px; overflow:hidden; aspect-ratio:1;
+    background:var(--dusk); position:relative;
+  }
+  .attraction-photo img { width:100%; height:100%; object-fit:cover; transition:transform 0.3s; }
+  .attraction-photo:hover img { transform:scale(1.1); }
+  .attraction-photo-name {
+    position:absolute; bottom:0; left:0; right:0;
+    background:linear-gradient(to top,rgba(15,26,10,0.9),transparent);
+    padding:16px 8px 8px;
+    font-size:0.7rem; font-weight:600; text-align:center;
+  }
+  .attraction-photo-placeholder {
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2rem;
+    background:linear-gradient(135deg,var(--dusk),rgba(45,80,22,0.5));
+    flex-direction:column; gap:6px;
+  }
+  .attraction-photo-placeholder span { font-size:0.65rem; color:rgba(245,236,215,0.5); }
+ 
+  /* Day cards */
+  .day-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.82), rgba(240,220,255,0.70));
+    border: 1px solid rgba(200,100,200,0.18);
+    border-radius: var(--radius);
+    padding:28px 32px;
+    margin-bottom:16px;
+    transition: all 0.3s;
+    position:relative; overflow:hidden;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(180,80,200,0.10);
+  }
+  [data-theme="dark"] .day-card {
+    background: linear-gradient(135deg, rgba(40,10,60,0.75), rgba(10,30,60,0.75)) !important;
+    border: 1px solid rgba(180,80,220,0.25) !important;
+  }
+  .day-card::before {
+    content:'';
+    position:absolute; left:0; top:0; bottom:0;
+    width:4px;
+    background:linear-gradient(to bottom, #e040fb, #00bcd4, #ff4081);
+    border-radius:3px 0 0 3px;
+  }
+  .day-card:hover { border-color:rgba(200,80,220,0.35); transform:translateX(4px); box-shadow:0 8px 32px rgba(180,80,200,0.18); }
+  .day-number {
+    background: linear-gradient(135deg, rgba(224,64,251,0.15), rgba(0,188,212,0.15)) !important;
+    color: #c000d0 !important;
+    border: 1px solid rgba(200,80,220,0.3);
+  }
+  [data-theme="dark"] .day-number { color: #e040fb !important; }
+  .day-title { background: linear-gradient(90deg,#c000d0,#0097a7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  [data-theme="dark"] .day-title { background: linear-gradient(90deg,#e040fb,#00bcd4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .activity-time { color: #0097a7 !important; }
+  [data-theme="dark"] .activity-time { color: #00bcd4 !important; }
+  .activity-cost { background: linear-gradient(135deg,rgba(224,64,251,0.12),rgba(0,188,212,0.12)) !important; color: #c000d0 !important; border: 1px solid rgba(200,80,220,0.2); }
+  [data-theme="dark"] .activity-cost { color: #e040fb !important; }
+ 
+  .day-header {
+    display:flex; align-items:center; gap:16px; margin-bottom:20px;
+  }
+  .day-number {
+    font-family:'DM Mono',monospace;
+    font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--gold);
+    background:rgba(232,184,75,0.1);
+    padding:6px 14px; border-radius:20px;
+    flex-shrink:0;
+  }
+  .day-title { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:700; }
+ 
+  .day-activities { list-style:none; }
+  .day-activity {
+    display:flex; align-items:flex-start; gap:14px;
+    padding:12px 0;
+    border-bottom:1px solid rgba(245,236,215,0.06);
+  }
+  .day-activity:last-child { border-bottom:none; }
+  .activity-time {
+    font-family:'DM Mono',monospace;
+    font-size:0.7rem;
+    color:var(--sage);
+    flex-shrink:0; min-width:54px;
+    padding-top:3px;
+  }
+  .activity-icon { font-size:1.1rem; flex-shrink:0; padding-top:2px; }
+  .activity-info {}
+  .activity-name { font-weight:600; font-size:0.95rem; }
+  .activity-desc { font-size:0.82rem; color:var(--text-muted); margin-top:4px; line-height:1.6; }
+  .activity-cost {
+    font-family:'DM Mono',monospace;
+    font-size:0.78rem;
+    color:var(--gold);
+    background:rgba(232,184,75,0.08);
+    padding:2px 10px; border-radius:20px;
+    margin-top:6px; display:inline-block;
+  }
+ 
+  /* Sidebar */
+  .sidebar {}
+ 
+  .sidebar-widget {
+    background: linear-gradient(135deg, rgba(255,255,255,0.82), rgba(240,220,255,0.65));
+    border: 1px solid rgba(200,100,200,0.18);
+    border-radius: var(--radius);
+    padding:24px;
+    margin-bottom:20px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(180,80,200,0.10);
+    position: relative;
+    overflow: hidden;
+  }
+  .sidebar-widget::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0;
+    height:3px;
+    background: linear-gradient(90deg, #e040fb, #00bcd4, #ff4081);
+  }
+  [data-theme="dark"] .sidebar-widget {
+    background: linear-gradient(135deg, rgba(40,10,60,0.75), rgba(10,30,60,0.75)) !important;
+    border: 1px solid rgba(180,80,220,0.25) !important;
+  }
+ 
+  .widget-title {
+    font-size:0.75rem; font-weight:700;
+    letter-spacing:0.12em; text-transform:uppercase;
+    background: linear-gradient(90deg,#c000d0,#0097a7);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:18px;
+    display:flex; align-items:center; gap:8px;
+  }
+  [data-theme="dark"] .widget-title {
+    background: linear-gradient(90deg,#e040fb,#00bcd4);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+ 
+  /* Budget breakdown */
+  .budget-total {
+    font-family:'Playfair Display',serif;
+    font-size:2.2rem; font-weight:900;
+    background: linear-gradient(90deg,#c000d0,#0097a7);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:20px;
+  }
+  [data-theme="dark"] .budget-total {
+    background: linear-gradient(90deg,#e040fb,#00bcd4);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .budget-bar-container { margin-bottom:10px; }
+  .budget-bar-label {
+    display:flex; justify-content:space-between;
+    font-size:0.8rem; margin-bottom:6px;
+    color:var(--text-muted);
+  }
+  .budget-bar { height:7px; background:rgba(200,80,220,0.10); border-radius:4px; overflow:hidden; }
+  .budget-bar-fill { height:100%; border-radius:4px; transition:width 1s cubic-bezier(0.16,1,0.3,1); }
+ 
+  /* Weather */
+  .weather-widget {
+    display:flex; align-items:center; gap:16px; margin-bottom:16px;
+  }
+  .weather-icon { font-size:3rem; }
+  .weather-temp {
+    font-family:'Playfair Display',serif; font-size:2rem; font-weight:900;
+    background: linear-gradient(90deg,#c000d0,#0097a7);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  [data-theme="dark"] .weather-temp {
+    background: linear-gradient(90deg,#e040fb,#00bcd4);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .weather-desc { font-size:0.82rem; color:var(--text-muted); margin-top:4px; }
+  .weather-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .weather-tag {
+    font-size:0.72rem; padding:4px 12px;
+    background: linear-gradient(135deg,rgba(224,64,251,0.10),rgba(0,188,212,0.10));
+    border:1px solid rgba(200,80,220,0.25);
+    border-radius:20px;
+    color:#0097a7;
+  }
+  [data-theme="dark"] .weather-tag { color:#00bcd4; }
+ 
+  /* Hotels & Restaurants */
+  .place-item {
+    display:flex; align-items:center; gap:14px;
+    padding:12px 0;
+    border-bottom:1px solid rgba(200,80,220,0.10);
+  }
+  .place-item:last-child { border-bottom:none; }
+  .place-emoji { font-size:1.6rem; flex-shrink:0; }
+  .place-name { font-weight:600; font-size:0.88rem; }
+  .place-detail { font-size:0.76rem; color:var(--text-muted); margin-top:3px; }
+  .place-price {
+    margin-left:auto; flex-shrink:0;
+    font-family:'DM Mono',monospace;
+    font-size:0.75rem;
+    color:#c000d0;
+  }
+  [data-theme="dark"] .place-price { color:#e040fb; }
+ 
+  /* Map */
+  .map-container {
+    border-radius:var(--radius);
+    overflow:hidden;
+    height:340px;
+    border:2px solid rgba(200,80,220,0.20);
+    position:relative;
+    margin-bottom:32px;
+    box-shadow: 0 4px 24px rgba(180,80,200,0.12);
+  }
+  .map-container iframe {
+    width:100%; height:100%; border:none; display:block;
+  }
+ 
+  /* ── CHATBOT ── */
+  .chatbot-trigger {
+    position:fixed; bottom:32px; right:32px;
+    width:60px; height:60px;
+    background:linear-gradient(135deg, var(--terracotta), var(--clay));
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.4rem;
+    cursor:none;
+    z-index:2000;
+    box-shadow:0 8px 32px rgba(212,82,42,0.4);
+    transition:all 0.3s;
+    border:none;
+    color:var(--ivory);
+  }
+  .chatbot-trigger:hover { transform:scale(1.1); box-shadow:0 12px 40px rgba(212,82,42,0.5); }
+ 
+  .chatbot-panel {
+    position:fixed; bottom:108px; right:32px;
+    width:380px;
+    background: rgba(20,30,15,0.95);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(245,236,215,0.12);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    z-index:1999;
+    display:none; flex-direction:column;
+    overflow:hidden;
+    max-height:520px;
+  }
+  .chatbot-panel.open { display:flex; animation:slideUpPanel 0.3s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes slideUpPanel { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+ 
+  .chatbot-header {
+    background:linear-gradient(135deg, rgba(45,80,22,0.5), rgba(30,45,20,0.5));
+    padding:18px 20px;
+    display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid rgba(245,236,215,0.08);
+  }
+  .chatbot-avatar { font-size:1.5rem; }
+  .chatbot-name { font-weight:700; font-size:0.95rem; }
+  .chatbot-status { font-size:0.72rem; color:var(--sage); margin-top:2px; display:flex; align-items:center; gap:5px; }
+  .chatbot-status::before { content:''; width:6px; height:6px; background:var(--sage); border-radius:50%; }
+  .chatbot-close {
+    margin-left:auto;
+    background:none; border:none;
+    color:rgba(11,31,51,0.5);
+    font-size:1.2rem; cursor:none;
+    transition:color 0.2s;
+  }
+  .chatbot-close:hover { color:var(--text); }
+ 
+  .chatbot-messages {
+    flex:1; overflow-y:auto; padding:16px;
+    display:flex; flex-direction:column; gap:12px;
+    max-height:320px;
+  }
+  .chatbot-messages::-webkit-scrollbar { width:4px; }
+  .chatbot-messages::-webkit-scrollbar-track { background:transparent; }
+  .chatbot-messages::-webkit-scrollbar-thumb { background:rgba(30,144,255,0.2); border-radius:2px; }
+ 
+  .msg {
+    max-width:85%; padding:12px 16px;
+    border-radius:12px; font-size:0.86rem; line-height:1.6;
+    animation:msgAppear 0.3s ease;
+  }
+  @keyframes msgAppear { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .msg-bot {
+    background:rgba(45,80,22,0.4);
+    border:1px solid rgba(122,158,95,0.2);
+    align-self:flex-start;
+    border-radius:4px 12px 12px 12px;
+  }
+  .msg-user {
+    background:rgba(196,120,58,0.25);
+    border:1px solid rgba(196,120,58,0.3);
+    align-self:flex-end;
+    border-radius:12px 4px 12px 12px;
+    text-align:right;
+  }
+  .typing-indicator {
+    display:flex; gap:4px; align-items:center;
+    padding:12px 16px;
+    background:rgba(45,80,22,0.3);
+    border-radius:4px 12px 12px 12px;
+    width:fit-content;
+  }
+  .typing-dot {
+    width:6px; height:6px;
+    background:var(--sage);
+    border-radius:50%;
+    animation:typingBounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay:0.2s; }
+  .typing-dot:nth-child(3) { animation-delay:0.4s; }
+  @keyframes typingBounce { 0%,80%,100%{transform:scale(0.8);opacity:0.5} 40%{transform:scale(1.1);opacity:1} }
+ 
+  .chatbot-input-row {
+    display:flex; gap:10px; padding:14px 16px;
+    border-top:1px solid rgba(245,236,215,0.08);
+  }
+  .chatbot-input {
+    flex:1; background:rgba(30,144,255,0.05);
+    border:1px solid rgba(30,144,255,0.15);
+    border-radius:10px; padding:10px 14px;
+    color:var(--text); font-family:'DM Sans',sans-serif;
+    font-size:0.85rem; outline:none;
+    transition:border-color 0.2s;
+    cursor:none;
+  }
+  .chatbot-input:focus { border-color:rgba(122,158,95,0.4); }
+  .chatbot-send {
+    background:var(--sage);
+    border:none; border-radius:10px;
+    width:40px; height:40px;
+    cursor:none;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1rem; color:var(--night);
+    transition:all 0.2s;
+  }
+  .chatbot-send:hover { background:var(--forest); color:var(--sand); }
+ 
+  /* Loading state */
+  .loading-overlay {
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(245,251,255,0.92);
+    backdrop-filter:blur(8px);
+    z-index:5000;
+    flex-direction:column;
+    align-items:center; justify-content:center; gap:24px;
+  }
+  .loading-overlay.active { display:flex; }
+  .loading-spinner {
+    width:60px; height:60px;
+    border:3px solid rgba(245,236,215,0.1);
+    border-top:3px solid var(--gold);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading-text {
+    font-family:'Playfair Display',serif;
+    font-size:1.3rem;
+    color:var(--text);
+    text-align:center;
+  }
+  .loading-sub { font-size:0.85rem; color:var(--text-muted); }
+ 
+  /* Footer */
+  footer {
+    background:var(--dusk);
+    border-top:1px solid rgba(245,236,215,0.08);
+    padding:48px;
+    text-align:center;
+  }
+  .footer-logo {
+    font-family:'Playfair Display',serif;
+    font-size:1.8rem; font-weight:900; margin-bottom:12px;
+  }
+  .footer-logo span { color:var(--gold); font-style:italic; }
+  .footer-text { font-size:0.82rem; color:#ffffff; opacity:0.85; }
+  footer > div:last-child { color: rgba(255,255,255,0.6) !important; }
+ 
+  /* ── AUTH MODAL ── */
+  .modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);
+    z-index:8000; align-items:center; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal-box {
+    background:#FFFFFF;
+    border:1px solid rgba(30,144,255,0.15);
+    border-radius:24px; padding:40px;
+    width:100%; max-width:420px; position:relative;
+    box-shadow:0 32px 80px rgba(30,144,255,0.18);
+    animation:heroReveal 0.3s ease;
+  }
+  .modal-title { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:900; margin-bottom:6px; }
+  .modal-sub { font-size:0.85rem; color:var(--text-muted); margin-bottom:28px; }
+  .modal-tabs { display:flex; margin-bottom:28px; border-radius:10px; overflow:hidden; border:1px solid rgba(245,236,215,0.1); }
+  .modal-tab { flex:1; padding:10px; background:transparent; border:none; color:var(--text-muted); font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+  .modal-tab.active { background:var(--terracotta); color:var(--ivory); }
+  .modal-form { display:flex; flex-direction:column; gap:14px; }
+  .modal-input { background:rgba(30,144,255,0.05); border:1px solid rgba(30,144,255,0.2); border-radius:10px; padding:13px 16px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; }
+  .modal-input:focus { border-color:var(--primary); }
+  .modal-input::placeholder { color:var(--text-faint); }
+  .modal-btn { background:linear-gradient(135deg,var(--terracotta),var(--clay)); color:var(--ivory); border:none; border-radius:10px; padding:14px; font-family:'DM Sans',sans-serif; font-size:0.95rem; font-weight:600; cursor:pointer; transition:all 0.3s; margin-top:4px; }
+  .modal-btn:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(212,82,42,0.35); }
+  .modal-error { font-size:0.82rem; color:#ff6b6b; text-align:center; display:none; }
+  .modal-close { position:absolute; top:16px; right:20px; background:none; border:none; color:var(--text-faint); font-size:1.4rem; cursor:pointer; }
+
+  /* ── PROFILE PANEL ── */
+  .profile-panel { position:fixed; top:0; right:-420px; width:400px; height:100vh; background:rgba(245,251,255,0.98); backdrop-filter:blur(20px); border-left:1px solid rgba(30,144,255,0.15); z-index:7000; transition:right 0.4s cubic-bezier(0.16,1,0.3,1); display:flex; flex-direction:column; overflow:hidden; }
+  .profile-panel.open { right:0; }
+  .profile-header { padding:28px 24px 20px; border-bottom:1px solid rgba(30,144,255,0.1); display:flex; align-items:center; gap:16px; }
+  .profile-avatar { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--terracotta),var(--clay)); display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0; }
+  .profile-name { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; }
+  .profile-email { font-size:0.78rem; color:var(--text-muted); margin-top:3px; }
+  .profile-close { margin-left:auto; background:none; border:none; color:var(--text-faint); font-size:1.3rem; cursor:pointer; }
+  .profile-body { flex:1; overflow-y:auto; padding:20px 24px; }
+  .profile-section-title { font-size:0.72rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+  .saved-trip-card { background:rgba(30,144,255,0.04); border:1px solid rgba(30,144,255,0.12); border-radius:12px; padding:16px; margin-bottom:12px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:14px; }
+  .saved-trip-card:hover { border-color:var(--primary); background:rgba(30,144,255,0.08); }
+  .saved-trip-emoji { font-size:1.8rem; flex-shrink:0; }
+  .saved-trip-dest { font-weight:600; font-size:0.92rem; }
+  .saved-trip-meta { font-size:0.75rem; color:var(--text-muted); margin-top:3px; }
+  .saved-trip-del { margin-left:auto; background:none; border:none; color:var(--text-faint); font-size:1rem; cursor:pointer; transition:color 0.2s; flex-shrink:0; }
+  .saved-trip-del:hover { color:#ff6b6b; }
+  .profile-signout { margin:16px 24px 24px; background:rgba(212,82,42,0.1); border:1px solid rgba(212,82,42,0.3); border-radius:10px; padding:12px; color:var(--terracotta); font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:600; cursor:pointer; transition:all 0.2s; width:calc(100% - 48px); }
+  .profile-signout:hover { background:rgba(212,82,42,0.2); }
+
+  /* Toast */
+  .toast {
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+    background:#0B1F33;
+    border:1px solid rgba(0,229,255,0.4);
+    border-radius:40px; padding:12px 24px;
+    font-size:0.88rem; color:#00E5FF;
+    z-index:9000; animation:toastIn 0.3s ease;
+    display:none;
+  }
+  .toast.show { display:block; }
+  @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+ 
+  /* Responsive */
+  @media(max-width:900px) {
+    nav { padding:16px 24px; }
+    .nav-links { display:none; }
+    .hero-stats { gap:24px; flex-wrap:wrap; }
+    .features-grid { grid-template-columns:1fr; }
+    .planner-card { padding:32px 24px; }
+    .form-row { grid-template-columns:1fr; }
+    .preferences-grid { grid-template-columns:repeat(2,1fr); }
+    .results-layout { grid-template-columns:1fr; }
+    .features-section,.results-section,#plan,#destinations { padding:60px 24px; }
+    .attraction-photos { grid-template-columns:repeat(2,1fr); }
+    .chatbot-panel { width:calc(100vw - 48px); right:24px; }
+  }
+ 
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:rgba(30,144,255,0.2); border-radius:3px; }
+  /* --- GLOBAL GLASS THEME OVERRIDES --- */
+  body {
+    background: linear-gradient(135deg, #1E90FF, #00E5FF) fixed !important;
+  }
+  [data-theme="dark"] body,
+  body[data-theme="dark"] {
+    background: linear-gradient(135deg, #060E1A, #0B2A4A) fixed !important;
+  }
+  .hero-bg, .hero-grid, .hero-orb {
+    position: fixed !important;
+    z-index: -2 !important;
+  }
+  .hero-orb { z-index: -1 !important; }
+
+  #destinations, #results, footer, #plan, .features-section {
+    background: transparent !important;
+  }
+
+  .dest-card, .planner-card, .day-card, .feat-card, .chatbot-panel, .attraction-photo {
+    background: rgba(255,255,255,0.72) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255,255,255,0.5) !important;
+    box-shadow: 0 8px 32px rgba(30,144,255,0.15) !important;
+    color: var(--text) !important;
+  }
+  [data-theme="dark"] .dest-card,
+  [data-theme="dark"] .planner-card,
+  [data-theme="dark"] .day-card,
+  [data-theme="dark"] .feat-card,
+  [data-theme="dark"] .chatbot-panel,
+  [data-theme="dark"] .attraction-photo {
+    background: rgba(11,31,51,0.70) !important;
+    border: 1px solid rgba(30,144,255,0.20) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.40) !important;
+    color: var(--text) !important;
+  }
+
+  .chatbot-header, .dest-overlay {
+    background: rgba(30,144,255,0.15) !important;
+  }
+  [data-theme="dark"] .chatbot-header {
+    background: rgba(6,14,26,0.60) !important;
+  }
+  .dest-placeholder, .map-container, .dest-banner {
+    background: transparent !important;
+  }
+  nav {
+    background: rgba(255,255,255,0.75) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(30,144,255,0.15) !important;
+  }
+  [data-theme="dark"] nav {
+    background: rgba(6,14,26,0.80) !important;
+    border-bottom: 1px solid rgba(30,144,255,0.20) !important;
+  }
+  [data-theme="dark"] .nav-links a { color: rgba(232,244,255,0.75) !important; }
+  [data-theme="dark"] .modal-box {
+    background: #0B1A2E !important;
+    border: 1px solid rgba(30,144,255,0.25) !important;
+    color: var(--text) !important;
+  }
+  [data-theme="dark"] .modal-input {
+    background: rgba(30,144,255,0.08) !important;
+    border-color: rgba(30,144,255,0.25) !important;
+    color: var(--text) !important;
+  }
+  [data-theme="dark"] .modal-input::placeholder { color: rgba(232,244,255,0.35) !important; }
+  [data-theme="dark"] .profile-panel {
+    background: rgba(6,14,26,0.97) !important;
+    border-left-color: rgba(30,144,255,0.20) !important;
+  }
+  [data-theme="dark"] .saved-trip-card {
+    background: rgba(30,144,255,0.08) !important;
+    border-color: rgba(30,144,255,0.18) !important;
+  }
+  [data-theme="dark"] .form-input,
+  [data-theme="dark"] .form-select {
+    background: rgba(30,144,255,0.08) !important;
+    border-color: rgba(30,144,255,0.25) !important;
+    color: var(--text) !important;
+  }
+  [data-theme="dark"] .pref-btn {
+    background: rgba(30,144,255,0.08) !important;
+    border-color: rgba(30,144,255,0.20) !important;
+    color: rgba(232,244,255,0.70) !important;
+  }
+  [data-theme="dark"] .chatbot-input {
+    background: rgba(30,144,255,0.08) !important;
+    border-color: rgba(30,144,255,0.20) !important;
+    color: var(--text) !important;
+  }
+  [data-theme="dark"] .loading-overlay {
+    background: rgba(6,14,26,0.92) !important;
+  }
+</style>
+</head>
+<body>
+<button id="themeToggle" style="position: fixed; top: 20px; right: 20px; z-index: 9999; background: var(--terracotta); color: var(--ivory); border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 1.2rem; cursor: pointer; box-shadow: var(--shadow); transition: all 0.3s;" onclick="toggleTheme()" title="Toggle Theme">🌓</button>
+ 
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+ 
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div>
+    <div class="loading-text">Planning your perfect trip…</div>
+    <div class="loading-sub" id="loadingMsg">Crafting your personalised itinerary ✨</div>
+  </div>
+</div>
+ 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+ 
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAuthModal()">&#x2715;</button>
+    <div class="modal-title">Welcome to <span style="color:var(--gold);font-style:italic">Wandr</span></div>
+    <div class="modal-sub">Sign in to save &amp; revisit your trips</div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+      <button class="modal-tab" id="tabRegister" onclick="switchTab('register')">Register</button>
+    </div>
+    <!-- Login -->
+    <div id="formLogin" class="modal-form">
+      <input class="modal-input" id="loginEmail" type="email" placeholder="Email address" />
+      <input class="modal-input" id="loginPassword" type="password" placeholder="Password" />
+      <div class="modal-error" id="loginError"></div>
+      <button class="modal-btn" id="loginBtn" onclick="doLogin()">Sign In &#x2192;</button>
+    </div>
+    <!-- Register -->
+    <div id="formRegister" class="modal-form" style="display:none">
+      <input class="modal-input" id="regName" type="text" placeholder="Full name" />
+      <input class="modal-input" id="regEmail" type="email" placeholder="Email address" />
+      <input class="modal-input" id="regPhone" type="tel" placeholder="Phone number (optional)" />
+      <input class="modal-input" id="regPassword" type="password" placeholder="Password (min 6 chars)" />
+      <div class="modal-error" id="regError"></div>
+      <button class="modal-btn" id="regBtn" onclick="doRegister()">Create Account &#x2192;</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE PANEL -->
+<div class="profile-panel" id="profilePanel">
+  <div class="profile-header">
+    <div class="profile-avatar" id="profileAvatar">&#x1F9ED;</div>
+    <div style="flex:1;min-width:0">
+      <div class="profile-name" id="profileName">Traveller</div>
+      <div class="profile-email" id="profileEmailDisplay"></div>
+    </div>
+    <button class="profile-close" onclick="closeProfile()">&#x2715;</button>
+  </div>
+
+  <div class="profile-body">
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+      <div style="background:rgba(30,144,255,0.08);border:1px solid rgba(30,144,255,0.15);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--gold)" id="statTrips">0</div>
+        <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">Trips</div>
+      </div>
+      <div style="background:rgba(30,144,255,0.08);border:1px solid rgba(30,144,255,0.15);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--gold)" id="statDays">0</div>
+        <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">Days</div>
+      </div>
+      <div style="background:rgba(30,144,255,0.08);border:1px solid rgba(30,144,255,0.15);border-radius:12px;padding:12px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:var(--gold)" id="statBudget">&#x20B9;0</div>
+        <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">Spent</div>
+      </div>
+    </div>
+
+    <!-- Edit Profile -->
+    <div style="margin-bottom:20px">
+      <div class="profile-section-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleEditProfile()">
+        &#x270F;&#xFE0F; Edit Profile <span id="editArrow" style="font-size:0.8rem">&#x25BC;</span>
+      </div>
+      <div id="editProfileForm" style="display:none;margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <input class="modal-input" id="editName" type="text" placeholder="Full name" style="font-size:0.85rem;padding:10px 14px" />
+        <input class="modal-input" id="editPhone" type="tel" placeholder="Phone number" style="font-size:0.85rem;padding:10px 14px" />
+        <textarea class="modal-input" id="editBio" placeholder="Short bio (e.g. Adventure lover from Mumbai)" rows="2" style="font-size:0.85rem;padding:10px 14px;resize:none"></textarea>
+        <div style="display:flex;gap:8px">
+          <input class="modal-input" id="editAvatar" type="text" placeholder="Avatar emoji e.g. &#x1F30D;" style="font-size:0.85rem;padding:10px 14px;flex:1" />
+          <button onclick="saveProfile()" style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap">Save</button>
+        </div>
+        <div style="border-top:1px solid rgba(30,144,255,0.1);padding-top:10px;margin-top:4px">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Change Password</div>
+          <input class="modal-input" id="pwdCurrent" type="password" placeholder="Current password" style="font-size:0.85rem;padding:10px 14px;margin-bottom:8px" />
+          <input class="modal-input" id="pwdNew" type="password" placeholder="New password" style="font-size:0.85rem;padding:10px 14px;margin-bottom:8px" />
+          <button onclick="changePassword()" style="background:rgba(30,144,255,0.15);color:var(--primary);border:1px solid rgba(30,144,255,0.3);border-radius:10px;padding:9px 16px;font-size:0.82rem;font-weight:600;cursor:pointer;width:100%">Update Password</button>
+        </div>
+        <div class="modal-error" id="profileEditError" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Saved Trips -->
+    <div class="profile-section-title">&#x1F5FA;&#xFE0F; Saved Trips</div>
+    <div id="savedTripsList"><div style="color:var(--text-faint);font-size:0.85rem">No trips saved yet.</div></div>
+  </div>
+
+  <button class="profile-signout" onclick="doSignOut()">Sign Out</button>
+</div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo">Wan<span>dr</span></div>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#plan">Plan Trip</a></li>
+    <li><a href="#destinations">Destinations</a></li>
+    <li><a href="#" id="authBtn" onclick="handleAuthBtn(event)">Sign In</a></li>
+    <li><a href="#plan" class="nav-cta">Start Planning</a></li>
+  </ul>
+</nav>
+ 
+<!-- HERO -->
+<section id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-orb orb3"></div>
+ 
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      AI-Powered Travel Planning
+    </div>
+    <h1 class="hero-title">
+      Travel <em>smarter,</em><br>
+      <span class="line2">wander further.</span>
+    </h1>
+    <p class="hero-sub">
+      Tell us where you dream of going. Our AI crafts day-by-day itineraries, estimates costs in ₹, and adapts to your vibe — all in seconds.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="document.getElementById('plan').scrollIntoView({behavior:'smooth'})">
+        ✦ Plan My Trip
+      </button>
+      <button class="btn-ghost" onclick="document.getElementById('destinations').scrollIntoView({behavior:'smooth'})">
+        ◎ Explore Destinations
+      </button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">500+</div><div class="label">Destinations</div></div>
+      <div class="hero-stat"><div class="num">50K+</div><div class="label">Trips Planned</div></div>
+      <div class="hero-stat"><div class="num">4.9★</div><div class="label">Traveller Rating</div></div>
+    </div>
+  </div>
+</section>
+ 
+<!-- FEATURES -->
+<section class="features-section">
+  <div class="section-header">
+    <div class="section-eyebrow">Why Wandr</div>
+    <h2 class="section-title">Everything you need to <em>travel well</em></h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🤖</div>
+      <div class="feat-title">AI-Generated Itineraries</div>
+      <div class="feat-desc">Smart day-by-day plans tailored to your interests, budget, and travel style — generated in real time.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎙️</div>
+      <div class="feat-title">Voice Input</div>
+      <div class="feat-desc">Speak your travel dreams hands-free. Just say where you want to go and for how long.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💰</div>
+      <div class="feat-title">Budget in ₹</div>
+      <div class="feat-desc">Set your budget in Indian Rupees and get a full cost breakdown — flights, hotels, food, activities.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🗺️</div>
+      <div class="feat-title">Map View</div>
+      <div class="feat-desc">See all your destinations plotted on a map with smart routing suggestions for each day.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🌤️</div>
+      <div class="feat-title">Weather-Aware Planning</div>
+      <div class="feat-desc">Get packing suggestions and activity recommendations based on seasonal weather at your destination.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💬</div>
+      <div class="feat-title">AI Chatbot Guide</div>
+      <div class="feat-desc">Ask our travel assistant anything — visa info, local tips, best food spots, cultural etiquette.</div>
+    </div>
+  </div>
+</section>
+ 
+<!-- DESTINATIONS -->
+<section id="destinations">
+  <div class="section-header">
+    <div class="section-eyebrow">Trending Now</div>
+    <h2 class="section-title">Popular <em>destinations</em></h2>
+  </div>
+  <div class="dest-grid" id="destGrid">
+    <!-- Injected by JS -->
+  </div>
+</section>
+ 
+<!-- PLAN TRIP -->
+<section id="plan">
+  <div class="plan-container">
+    <div class="section-header" style="text-align:left;margin-bottom:40px;">
+      <div class="section-eyebrow">AI Trip Planner</div>
+      <h2 class="section-title">Build your <em>perfect</em> journey</h2>
+    </div>
+    <div class="planner-card">
+      <div class="planner-title">Where to?</div>
+      <div class="planner-subtitle">Fill in the details and our AI will craft your personalised itinerary</div>
+ 
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Destination</label>
+          <input class="form-input" id="destination" placeholder="e.g. Goa, Rajasthan, Kerala…" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Number of Days</label>
+          <input class="form-input" id="days" type="number" min="1" max="30" placeholder="e.g. 5" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Budget (₹)</label>
+          <input class="form-input" id="budget" type="number" placeholder="e.g. 25000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Travellers</label>
+          <select class="form-select" id="travellers">
+            <option value="solo">Solo</option>
+            <option value="couple">Couple</option>
+            <option value="family">Family (3-4)</option>
+            <option value="group">Group (5+)</option>
+          </select>
+        </div>
+      </div>
+ 
+      <div class="form-group" style="margin-bottom:20px;">
+        <label class="form-label">Travel Style</label>
+        <div class="preferences-grid" id="prefGrid">
+          <button class="pref-btn active" data-pref="adventure"><span class="pref-icon">⛰️</span>Adventure</button>
+          <button class="pref-btn" data-pref="nature"><span class="pref-icon">🌿</span>Nature</button>
+          <button class="pref-btn" data-pref="spiritual"><span class="pref-icon">🕌</span>Spiritual</button>
+          <button class="pref-btn" data-pref="relaxation"><span class="pref-icon">🏖️</span>Relaxation</button>
+          <button class="pref-btn" data-pref="culture"><span class="pref-icon">🎭</span>Culture</button>
+          <button class="pref-btn" data-pref="food"><span class="pref-icon">🍜</span>Food Tour</button>
+          <button class="pref-btn" data-pref="luxury"><span class="pref-icon">✨</span>Luxury</button>
+          <button class="pref-btn" data-pref="budget"><span class="pref-icon">💸</span>Budget</button>
+        </div>
+      </div>
+ 
+      <div class="voice-row">
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎙️</button>
+        <div class="voice-text">
+          <strong>Voice Input</strong>
+          Say: "Plan a 5-day trip to Manali for ₹20,000"
+        </div>
+      </div>
+ 
+      <button class="generate-btn" id="generateBtn" onclick="generateTrip()">
+        ✦ Generate My Itinerary
+        <span style="font-size:1.1rem">→</span>
+      </button>
+    </div>
+  </div>
+</section>
+ 
+<!-- RESULTS -->
+<section id="results">
+  <div class="results-header">
+    <div>
+      <div class="results-title">Your Trip to <span id="resultDest">—</span></div>
+      <div class="results-meta" id="resultMeta"></div>
+    </div>
+    <button class="btn-ghost" onclick="document.getElementById('plan').scrollIntoView({behavior:'smooth'})" style="font-size:0.8rem;padding:10px 20px;">← Re-plan</button>
+  </div>
+ 
+  <div class="results-layout">
+    <div class="results-main">
+      <!-- Destination banner -->
+      <div class="dest-banner" id="destBanner">
+        <div class="dest-banner-overlay" id="destBannerOverlay">
+          <h2 id="bannerTitle">—</h2>
+          <p id="bannerSub">—</p>
+        </div>
+      </div>
+ 
+      <!-- Attraction photos -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;">📸 Popular Attractions</div>
+        <div class="attraction-photos" id="attractionPhotos"></div>
+      </div>
+ 
+      <!-- Map -->
+      <div style="margin-bottom:28px;">
+        <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;background:linear-gradient(90deg,#c000d0,#0097a7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px;">🗺️ Route Map</div>
+        <div class="map-container" id="mapContainer"></div>
+      </div>
+ 
+      <!-- Day cards -->
+      <div id="dayCards"></div>
+    </div>
+ 
+    <div class="sidebar">
+      <!-- Budget -->
+      <div class="sidebar-widget">
+        <div class="widget-title">💰 Budget Breakdown</div>
+        <div class="budget-total" id="budgetTotal">₹0</div>
+        <div id="budgetBars"></div>
+      </div>
+ 
+      <!-- Weather -->
+      <div class="sidebar-widget" id="weatherWidget">
+        <div class="widget-title">🌤️ Weather & Packing</div>
+        <div class="weather-widget">
+          <div class="weather-icon" id="weatherIcon">☀️</div>
+          <div>
+            <div class="weather-temp" id="weatherTemp">—</div>
+            <div class="weather-desc" id="weatherDesc">—</div>
+          </div>
+        </div>
+        <div class="weather-tags" id="weatherTags"></div>
+      </div>
+ 
+      <!-- Hotels -->
+      <div class="sidebar-widget">
+        <div class="widget-title">🏨 Where to Stay</div>
+        <div id="hotelList"></div>
+      </div>
+ 
+      <!-- Restaurants -->
+      <div class="sidebar-widget">
+        <div class="widget-title">🍽️ Where to Eat</div>
+        <div id="restaurantList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- FOOTER -->
+<footer id="contact">
+  <div class="footer-logo">Wan<span>dr</span> AI</div>
+  <div class="footer-text">AI-powered travel planning for Indian explorers • Built with ♥ for wanderers</div>
+  <div style="margin-top:20px;font-size:0.75rem;color:rgba(245,236,215,0.2);">© 2025 Wandr AI. All rights reserved.</div>
+</footer>
+ 
+<!-- CHATBOT -->
+<button class="chatbot-trigger" id="chatTrigger" onclick="toggleChat()">💬</button>
+ 
+<div class="chatbot-panel" id="chatPanel">
+  <div class="chatbot-header">
+    <span class="chatbot-avatar">🧭</span>
+    <div>
+      <div class="chatbot-name">Wandr Assistant</div>
+      <div class="chatbot-status">Online — Ready to help</div>
+    </div>
+    <button class="chatbot-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chatbot-messages" id="chatMessages"></div>
+  <div class="chatbot-input-row">
+    <input class="chatbot-input" id="chatInput" placeholder="Ask me anything about travel…" onkeydown="if(event.key==='Enter')sendChat()" />
+    <button class="chatbot-send" onclick="sendChat()">➤</button>
+  </div>
+</div>
+ 
+<script>
+// ─── CURSOR ───────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  cursor.style.transform=`translate(${mx-6}px,${my-6}px)`;
+});
+(function animRing(){
+  rx+=(mx-rx-18)*0.15;
+  ry+=(my-ry-18)*0.15;
+  ring.style.transform=`translate(${rx}px,${ry}px)`;
+  requestAnimationFrame(animRing);
+})();
+ 
+// ─── NAVBAR SCROLL ────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',scrollY>60);
+});
+ 
+// ─── FEATURE CARD MOUSE TRACKING ──────────────────────
+document.querySelectorAll('.feat-card').forEach(c=>{
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    c.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+    c.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+  });
+});
+ 
+// ─── PREFERENCES ──────────────────────────────────────
+document.querySelectorAll('.pref-btn').forEach(b=>{
+  b.addEventListener('click',()=>b.classList.toggle('active'));
+});
+ 
+// ─── DESTINATIONS DATA ────────────────────────────────
+const DEST_PHOTOS = {
+  goa:       'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&auto=format&fit=crop&q=80',
+  rajasthan: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=800&auto=format&fit=crop&q=80',
+  kerala:    'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&auto=format&fit=crop&q=80',
+  manali:    'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=800&auto=format&fit=crop&q=80',
+  varanasi:  'https://images.unsplash.com/photo-1561361058-c24cecae35ca?w=800&auto=format&fit=crop&q=80',
+  andaman:   'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80',
+  rishikesh: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&auto=format&fit=crop&q=80',
+  ladakh:    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop&q=80',
+};
+const ATTR_PHOTOS = {
+  goa:['https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1587922546307-776227941871?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&auto=format&fit=crop&q=80'],
+  rajasthan:['https://images.unsplash.com/photo-1599661046289-e31897846e41?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1477587458883-47145ed94245?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1548013146-72479768bada?w=300&auto=format&fit=crop&q=80'],
+  kerala:['https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=300&auto=format&fit=crop&q=80'],
+  manali:['https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1519681393784-d120267933ba?w=300&auto=format&fit=crop&q=80'],
+  varanasi:['https://images.unsplash.com/photo-1561361058-c24cecae35ca?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1587474260584-136574528ed5?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1545389336-cf090694435e?w=300&auto=format&fit=crop&q=80'],
+  andaman:['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1559494007-9f5847c49d94?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=300&auto=format&fit=crop&q=80'],
+  rishikesh:['https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=300&auto=format&fit=crop&q=80'],
+  ladakh:['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1519681393784-d120267933ba?w=300&auto=format&fit=crop&q=80','https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300&auto=format&fit=crop&q=80'],
+};
+const DESTINATIONS = [
+  {name:'Goa',       tag:'Beach & Party',      meta:'3-5 days | Rs.8k-25k',  key:'goa'},
+  {name:'Rajasthan', tag:'Heritage & Culture', meta:'7-10 days | Rs.15k-50k', key:'rajasthan'},
+  {name:'Kerala',    tag:'Backwaters & Nature',meta:'5-7 days | Rs.12k-35k',  key:'kerala'},
+  {name:'Manali',    tag:'Mountains & Snow',   meta:'5-7 days | Rs.10k-30k',  key:'manali'},
+  {name:'Varanasi',  tag:'Spiritual & Ghats',  meta:'3-4 days | Rs.6k-18k',   key:'varanasi'},
+  {name:'Andaman',   tag:'Island & Diving',    meta:'6-8 days | Rs.20k-60k',  key:'andaman'},
+  {name:'Rishikesh', tag:'Adventure & Yoga',   meta:'4-6 days | Rs.8k-22k',   key:'rishikesh'},
+  {name:'Ladakh',    tag:'Desert & Peaks',     meta:'7-10 days | Rs.20k-55k', key:'ladakh'},
+];
+ 
+const destGrid = document.getElementById('destGrid');
+DESTINATIONS.forEach(d=>{
+  const img = DEST_PHOTOS[d.key];
+  destGrid.innerHTML += '<div class="dest-card" onclick="quickPlan(\'' + d.name + '\')">'
+    + '<img class="dest-img" src="' + img + '" alt="' + d.name + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" />'
+    + '<div class="dest-placeholder" style="display:none;font-size:4rem;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#0B1F33,#1E3A5F)"></div>'
+    + '<div class="dest-overlay"></div>'
+    + '<div class="dest-info">'
+      + '<div class="dest-tag">' + d.tag + '</div>'
+      + '<div class="dest-name">' + d.name + '</div>'
+      + '<div class="dest-meta">' + d.meta + '</div>'
+    + '</div></div>';
+});
+ 
+function quickPlan(dest){
+  document.getElementById('destination').value=dest;
+  document.getElementById('plan').scrollIntoView({behavior:'smooth'});
+  showToast(`✦ ${dest} selected! Fill in the rest and generate your trip.`);
+}
+ 
+// ─── VOICE INPUT ──────────────────────────────────────
+let recognition=null, isListening=false;
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    showToast('⚠️ Voice not supported in this browser. Try Chrome.');
+    return;
+  }
+  const btn=document.getElementById('voiceBtn');
+  if(isListening){ recognition.stop(); return; }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.lang='en-IN';
+  recognition.continuous=false;
+  recognition.interimResults=false;
+  recognition.onstart=()=>{ isListening=true; btn.classList.add('listening'); showToast('🎙️ Listening…'); };
+  recognition.onend=()=>{ isListening=false; btn.classList.remove('listening'); };
+  recognition.onresult=e=>{
+    const t=e.results[0][0].transcript.toLowerCase();
+    parseVoiceInput(t);
+    showToast('✓ Got it: "'+t+'"');
+  };
+  recognition.onerror=()=>{ showToast('⚠️ Couldn\'t hear you. Try again.'); isListening=false; btn.classList.remove('listening'); };
+  recognition.start();
+}
+ 
+function parseVoiceInput(t){
+  // Extract destination
+  const destMatch=t.match(/(?:to|for|visit|going to|trip to)\s+([a-z\s]+?)(?:\s+for|\s+in|\s+with|$)/i);
+  if(destMatch) document.getElementById('destination').value=destMatch[1].trim();
+  // Extract days
+  const daysMatch=t.match(/(\d+)[- ]?day/i);
+  if(daysMatch) document.getElementById('days').value=daysMatch[1];
+  // Extract budget
+  const budgetMatch=t.match(/(?:₹|rs\.?|rupees?)\s*([\d,]+)/i);
+  if(budgetMatch) document.getElementById('budget').value=budgetMatch[1].replace(/,/g,'');
+}
+ 
+// ─── TRIP DATA ────────────────────────────────────────
+const TRIP_DB = {
+  goa: {
+    emoji:'🏖️', tagline:'Sun, Sea & Spice',
+    weather:{icon:'☀️',temp:'32°C',desc:'Hot & Humid',tags:['Sunscreen','Light Clothes','Swimwear','Waterproof Bag']},
+    attractions:['Baga Beach','Basilica of Bom Jesus','Dudhsagar Falls','Anjuna Flea Market','Fort Aguada','Palolem Beach'],
+    attractionEmojis:['🏖️','⛪','💧','🛍️','🏰','🌅'],
+    hotels:[{n:'The Leela Goa',p:'₹8,500/night',r:'★★★★★',e:'🏨'},{n:'Zostel Goa',p:'₹650/night',r:'★★★★',e:'🏠'},{n:'Taj Exotica',p:'₹12,000/night',r:'★★★★★',e:'🏨'}],
+    restaurants:[{n:'Brittos',p:'₹600/meal',r:'Sea Food',e:'🐟'},{n:'Gunpowder',p:'₹800/meal',r:'South Indian',e:'🌶️'},{n:'Kokni Kanteen',p:'₹400/meal',r:'Local Goan',e:'🍛'}],
+    days:[
+      {title:'North Goa Beaches',activities:[
+        {time:'08:00',icon:'🏖️',name:'Baga Beach',desc:'Morning swim and breakfast by the shore',cost:'₹200'},
+        {time:'11:00',icon:'🏰',name:'Fort Aguada',desc:'16th century Portuguese fort with panoramic views',cost:'₹30'},
+        {time:'14:00',icon:'🍽️',name:'Lunch at Brittos',desc:'Iconic beachside restaurant, try the fish thali',cost:'₹600'},
+        {time:'16:00',icon:'🛍️',name:'Anjuna Flea Market',desc:'Famous Wednesday market for handicrafts and souvenirs',cost:'₹500'},
+        {time:'20:00',icon:'🎵',name:'Tito\'s Lane',desc:'Goa\'s famous nightlife strip',cost:'₹1,000'},
+      ]},
+      {title:'South Goa & Heritage',activities:[
+        {time:'09:00',icon:'⛪',name:'Basilica of Bom Jesus',desc:'UNESCO World Heritage Site, holds St. Francis Xavier\'s remains',cost:'Free'},
+        {time:'11:00',icon:'🏛️',name:'Se Cathedral',desc:'Largest church in Asia, stunning Portuguese Baroque architecture',cost:'Free'},
+        {time:'13:00',icon:'🍜',name:'Kokni Kanteen',desc:'Authentic Goan lunch — prawn curry & rice',cost:'₹400'},
+        {time:'15:00',icon:'🌊',name:'Palolem Beach',desc:'Crescent beach in South Goa, calm & serene',cost:'₹0'},
+        {time:'18:00',icon:'🌅',name:'Sunset Cruise',desc:'Dolphin spotting & sunset boat trip',cost:'₹400'},
+      ]},
+      {title:'Waterfalls & Adventure',activities:[
+        {time:'07:00',icon:'🚂',name:'Train to Dudhsagar',desc:'Scenic train ride through the Western Ghats',cost:'₹50'},
+        {time:'10:00',icon:'💧',name:'Dudhsagar Falls',desc:'Spectacular 600m waterfall, one of India\'s tallest',cost:'₹400'},
+        {time:'14:00',icon:'🍽️',name:'Forest Lunch',desc:'Pack lunch or eat at nearby eateries',cost:'₹300'},
+        {time:'16:00',icon:'🏄',name:'Watersports',desc:'Parasailing, jet ski & banana boat at Baga',cost:'₹800'},
+      ]},
+    ]
+  },
+  kerala: {
+    emoji:'🌿', tagline:'God\'s Own Country',
+    weather:{icon:'🌦️',temp:'28°C',desc:'Warm & Coastal',tags:['Light Cotton','Umbrella','Mosquito Repellent','Camera']},
+    attractions:['Alleppey Backwaters','Munnar Tea Gardens','Varkala Cliff Beach','Fort Kochi','Periyar Wildlife','Thrissur Pooram'],
+    attractionEmojis:['🚤','🍃','🏖️','🏛️','🐘','🎺'],
+    hotels:[{n:'Kumarakom Lake Resort',p:'₹12,000/night',r:'★★★★★',e:'🏨'},{n:'Spice Village',p:'₹6,000/night',r:'★★★★★',e:'🌿'},{n:'Zostel Munnar',p:'₹700/night',r:'★★★★',e:'🏠'}],
+    restaurants:[{n:'Dhe Puttu',p:'₹350/meal',r:'Kerala Style',e:'🍛'},{n:'Paragon',p:'₹500/meal',r:'Sea Food',e:'🐟'},{n:'Kerala Café',p:'₹250/meal',r:'Traditional',e:'🥘'}],
+    days:[
+      {title:'Alleppey Backwaters',activities:[
+        {time:'08:00',icon:'🚤',name:'Houseboat Check-In',desc:'Board your traditional kettuvallam houseboat',cost:'₹4,000'},
+        {time:'09:00',icon:'🌿',name:'Backwater Cruise',desc:'Cruise through emerald green canals and paddy fields',cost:'Included'},
+        {time:'13:00',icon:'🍛',name:'Lunch on Board',desc:'Fresh Kerala seafood cooked by your boat chef',cost:'Included'},
+        {time:'15:00',icon:'🎣',name:'Village Visit',desc:'Explore coir-making villages along the backwaters',cost:'₹0'},
+        {time:'18:00',icon:'🌅',name:'Sunset on Water',desc:'Watch the sun set over Vembanad Lake',cost:'₹0'},
+      ]},
+      {title:'Munnar Hills & Tea',activities:[
+        {time:'07:00',icon:'🍃',name:'Tea Garden Walk',desc:'Early morning walk through Tata tea estates',cost:'₹200'},
+        {time:'10:00',icon:'🏭',name:'Tea Museum',desc:'Learn about Kerala\'s famous tea production',cost:'₹120'},
+        {time:'12:00',icon:'🏔️',name:'Eravikulam National Park',desc:'Spot the endangered Nilgiri Tahr deer',cost:'₹125'},
+        {time:'15:00',icon:'💧',name:'Attukal Waterfalls',desc:'Beautiful hidden waterfall in Munnar',cost:'₹0'},
+        {time:'19:00',icon:'🍽️',name:'Dinner at Spice Garden',desc:'Authentic Kerala Sadhya meal',cost:'₹400'},
+      ]},
+      {title:'Fort Kochi & Heritage',activities:[
+        {time:'09:00',icon:'🏛️',name:'Fort Kochi Walk',desc:'Stroll through colonial-era streets with Dutch & Portuguese architecture',cost:'₹0'},
+        {time:'10:30',icon:'🎣',name:'Chinese Fishing Nets',desc:'Iconic cantilevered fishing nets — a symbol of Kochi',cost:'₹0'},
+        {time:'12:00',icon:'⛪',name:'St. Francis Church',desc:'Oldest European church in India, where Vasco da Gama was buried',cost:'₹0'},
+        {time:'14:00',icon:'🍛',name:'Lunch at Dhe Puttu',desc:'Authentic Kerala meals — puttu, kadala curry & fish fry',cost:'₹350'},
+        {time:'16:00',icon:'🎭',name:'Kathakali Performance',desc:'Classical Kerala dance-drama with elaborate costumes',cost:'₹300'},
+        {time:'19:00',icon:'🌊',name:'Marine Drive Stroll',desc:'Evening walk along the scenic Kochi waterfront',cost:'₹0'},
+      ]},
+      {title:'Varkala Cliff Beach',activities:[
+        {time:'08:00',icon:'🏖️',name:'Varkala Cliff',desc:'Stunning red laterite cliffs overlooking the Arabian Sea',cost:'₹0'},
+        {time:'10:00',icon:'🌊',name:'Beach Swim',desc:'Swim in the clear waters at Papanasam Beach',cost:'₹0'},
+        {time:'12:00',icon:'🧘',name:'Cliff-top Yoga',desc:'Morning yoga session with panoramic ocean views',cost:'₹300'},
+        {time:'14:00',icon:'🥥',name:'Cliff Café Lunch',desc:'Fresh coconut, grilled fish and tropical juices',cost:'₹400'},
+        {time:'16:00',icon:'🛕',name:'Janardhana Swami Temple',desc:'Ancient 2000-year-old Vishnu temple by the sea',cost:'₹0'},
+        {time:'18:30',icon:'🌅',name:'Sunset at the Cliff',desc:'One of Kerala\'s most breathtaking sunsets',cost:'₹0'},
+      ]},
+      {title:'Periyar Wildlife Sanctuary',activities:[
+        {time:'06:30',icon:'🐘',name:'Periyar Boat Safari',desc:'Spot wild elephants, bison and deer from a boat on Periyar Lake',cost:'₹150'},
+        {time:'09:00',icon:'🌿',name:'Jungle Trek',desc:'Guided nature walk through spice plantations and forest trails',cost:'₹500'},
+        {time:'13:00',icon:'🍛',name:'Spice Garden Lunch',desc:'Lunch surrounded by cardamom, pepper and cinnamon plants',cost:'₹400'},
+        {time:'15:00',icon:'🌶️',name:'Spice Market',desc:'Buy authentic Thekkady spices — cardamom, pepper, vanilla',cost:'₹800'},
+        {time:'17:00',icon:'🎪',name:'Kalaripayattu Show',desc:'Ancient Kerala martial art performance',cost:'₹200'},
+      ]},
+      {title:'Kovalam Beach & Ayurveda',activities:[
+        {time:'08:00',icon:'🏖️',name:'Kovalam Lighthouse Beach',desc:'Famous crescent beach with a working lighthouse',cost:'₹0'},
+        {time:'10:00',icon:'💆',name:'Ayurvedic Massage',desc:'Traditional Kerala Abhyanga full-body oil massage',cost:'₹1,500'},
+        {time:'13:00',icon:'🦞',name:'Lobster Lunch',desc:'Fresh lobster and prawn at a beachside shack',cost:'₹700'},
+        {time:'15:00',icon:'⛵',name:'Boat Ride',desc:'Scenic boat ride along the Kovalam coastline',cost:'₹300'},
+        {time:'18:00',icon:'🌅',name:'Lighthouse Sunset',desc:'Climb the lighthouse for a 360° sunset panorama',cost:'₹25'},
+      ]},
+      {title:'Wayanad — Forests & Waterfalls',activities:[
+        {time:'07:00',icon:'🌿',name:'Chembra Peak Trek',desc:'Trek to the heart-shaped lake at the top of Chembra Peak',cost:'₹300'},
+        {time:'11:00',icon:'💧',name:'Soochipara Waterfalls',desc:'Three-tiered waterfall hidden in the Wayanad forest',cost:'₹50'},
+        {time:'14:00',icon:'🍛',name:'Tribal Cuisine Lunch',desc:'Authentic Wayanad tribal food experience',cost:'₹250'},
+        {time:'16:00',icon:'🐘',name:'Muthanga Wildlife Sanctuary',desc:'Jeep safari — spot elephants, leopards and deer',cost:'₹400'},
+        {time:'19:00',icon:'🔥',name:'Bonfire & Folk Music',desc:'Evening bonfire with local tribal folk performances',cost:'₹0'},
+      ]},
+    ]
+  },
+  rajasthan: {
+    emoji:'🏰', tagline:'Land of Kings',
+    weather:{icon:'🌞',temp:'35°C',desc:'Hot & Dry',tags:['Sunscreen SPF50','Stole/Dupatta','Sunglasses','Water Bottle','Comfortable Shoes']},
+    attractions:['Amber Fort','Hawa Mahal','Mehrangarh Fort','City Palace Udaipur','Sam Sand Dunes','Jantar Mantar'],
+    attractionEmojis:['🏰','🕌','🏯','👑','🏜️','🔭'],
+    hotels:[{n:'Taj Lake Palace',p:'₹15,000/night',r:'★★★★★',e:'🏨'},{n:'Umaid Bhawan',p:'₹20,000/night',r:'★★★★★',e:'🏰'},{n:'Zostel Jaipur',p:'₹600/night',r:'★★★★',e:'🏠'}],
+    restaurants:[{n:'Laxmi Mishtan Bhandar',p:'₹200/meal',r:'Pure Veg',e:'🍬'},{n:'Chokhi Dhani',p:'₹800/meal',r:'Rajasthani',e:'🏮'},{n:'Peacock Rooftop',p:'₹700/meal',r:'Multi-Cuisine',e:'🦚'}],
+    days:[
+      {title:'Jaipur — Pink City',activities:[
+        {time:'07:00',icon:'🏰',name:'Amber Fort',desc:'Grand Rajput fort with mirror palace and elephant ride',cost:'₹200'},
+        {time:'11:00',icon:'🕌',name:'Hawa Mahal',desc:'Palace of Winds — iconic 5-storey pink sandstone facade',cost:'₹50'},
+        {time:'13:00',icon:'🍛',name:'Lunch at LMB',desc:'Famous 200-year-old sweet shop and restaurant',cost:'₹250'},
+        {time:'15:00',icon:'🔭',name:'Jantar Mantar',desc:'UNESCO World Heritage astronomical observatory',cost:'₹50'},
+        {time:'17:00',icon:'🛍️',name:'Johari Bazaar',desc:'Shop for gems, textiles and Jaipuri juttis',cost:'₹1,500'},
+      ]},
+      {title:'Jodhpur — Blue City',activities:[
+        {time:'09:00',icon:'🏯',name:'Mehrangarh Fort',desc:'Massive 15th century fort atop a cliff',cost:'₹100'},
+        {time:'12:00',icon:'🔵',name:'Blue City Walk',desc:'Wander through indigo-painted old city lanes',cost:'₹0'},
+        {time:'14:00',icon:'🍽️',name:'Milet Restaurant',desc:'Rooftop dining with fort views',cost:'₹600'},
+        {time:'16:00',icon:'🕌',name:'Jaswant Thada',desc:'Exquisite white marble cenotaph',cost:'₹30'},
+        {time:'19:00',icon:'🌅',name:'Sunset at Fort',desc:'Golden hour view over the blue city',cost:'₹0'},
+      ]},
+    ]
+  },
+  andaman: {
+    emoji:'🐠', tagline:'Emerald Islands of India',
+    weather:{icon:'🌊',temp:'29°C',desc:'Tropical & Sunny',tags:['Sunscreen SPF50','Swimwear','Snorkel Gear','Light Cotton','Waterproof Bag','Insect Repellent']},
+    attractions:['Radhanagar Beach','Cellular Jail','Havelock Island','Neil Island','Ross Island','Elephant Beach'],
+    attractionEmojis:['🏖️','🏛️','🌴','🏝️','🏚️','🐘'],
+    hotels:[
+      {n:'Taj Exotica Resort',p:'₹12,000/night',r:'★★★★★',e:'🏨'},
+      {n:'SeaShell Havelock',p:'₹5,500/night',r:'★★★★',e:'🐚'},
+      {n:'Symphony Palms',p:'₹3,000/night',r:'★★★',e:'🏠'},
+    ],
+    restaurants:[
+      {n:'Full Moon Café',p:'₹600/meal',r:'Sea Food',e:'🦞'},
+      {n:'Anju Coco Resto',p:'₹400/meal',r:'Multi-Cuisine',e:'🍽️'},
+      {n:'Mandalay Restaurant',p:'₹800/meal',r:'Fine Dining',e:'🌟'},
+    ],
+    days:[
+      {title:'Port Blair & Cellular Jail',activities:[
+        {time:'09:00',icon:'🏛️',name:'Cellular Jail',desc:'Colonial-era prison — a powerful symbol of India\'s freedom struggle',cost:'₹30'},
+        {time:'12:00',icon:'🏝️',name:'Ross Island',desc:'Abandoned British colonial headquarters, now a deer sanctuary',cost:'₹50'},
+        {time:'14:00',icon:'🍽️',name:'Mandalay Restaurant',desc:'Fresh Andamanese seafood lunch',cost:'₹800'},
+        {time:'16:00',icon:'🌊',name:'Corbyn\'s Cove Beach',desc:'Closest beach to Port Blair, calm waters perfect for a swim',cost:'₹0'},
+        {time:'19:30',icon:'🎭',name:'Light & Sound Show',desc:'Cellular Jail evening show — history brought to life',cost:'₹100'},
+      ]},
+      {title:'Havelock Island — Radhanagar Beach',activities:[
+        {time:'07:00',icon:'⛴️',name:'Ferry to Havelock',desc:'Government or private ferry from Port Blair (2–2.5 hrs)',cost:'₹900'},
+        {time:'10:00',icon:'🏖️',name:'Radhanagar Beach',desc:'Asia\'s best beach — pristine white sand, turquoise water',cost:'₹0'},
+        {time:'13:00',icon:'🥥',name:'Beach Shack Lunch',desc:'Fresh coconut, grilled fish and local snacks',cost:'₹400'},
+        {time:'15:00',icon:'🤿',name:'Snorkelling at Beach 5',desc:'Vibrant coral reefs teeming with tropical fish',cost:'₹600'},
+        {time:'18:00',icon:'🌅',name:'Sunset at Radhanagar',desc:'One of India\'s most spectacular sunsets',cost:'₹0'},
+      ]},
+      {title:'Elephant Beach & Water Sports',activities:[
+        {time:'08:30',icon:'🐘',name:'Elephant Beach',desc:'Boat ride to secluded beach with the best coral in Andaman',cost:'₹500'},
+        {time:'10:00',icon:'🤿',name:'Scuba Diving',desc:'Beginner-friendly dive among colourful coral gardens',cost:'₹3,500'},
+        {time:'13:00',icon:'🍛',name:'Anju Coco Resto',desc:'Popular local restaurant — try the prawn curry',cost:'₹400'},
+        {time:'15:00',icon:'🚣',name:'Kayaking',desc:'Mangrove kayaking through serene backwaters',cost:'₹800'},
+        {time:'18:00',icon:'🌴',name:'Havelock Village Walk',desc:'Explore the local market and pick up souvenirs',cost:'₹300'},
+      ]},
+      {title:'Neil Island Day Trip',activities:[
+        {time:'07:30',icon:'⛴️',name:'Ferry to Neil Island',desc:'Short ferry ride from Havelock (30 min)',cost:'₹400'},
+        {time:'09:00',icon:'🌸',name:'Natural Bridge',desc:'Iconic natural coral rock formation — best at low tide',cost:'₹0'},
+        {time:'11:00',icon:'🏖️',name:'Laxmanpur Beach',desc:'Quiet beach perfect for shell collecting and relaxing',cost:'₹0'},
+        {time:'13:30',icon:'🍽️',name:'Garden Restaurant',desc:'Fresh catch of the day with rice and curry',cost:'₹350'},
+        {time:'15:30',icon:'🚴',name:'Bicycle Ride',desc:'Rent a cycle and explore the tiny island at leisure',cost:'₹150'},
+      ]},
+      {title:'Snorkelling & Departure',activities:[
+        {time:'08:00',icon:'🌊',name:'Morning Snorkel',desc:'Last snorkelling session at Vijaynagar Beach',cost:'₹400'},
+        {time:'10:30',icon:'⛴️',name:'Ferry back to Port Blair',desc:'Return ferry from Havelock',cost:'₹900'},
+        {time:'13:00',icon:'🛍️',name:'Aberdeen Bazaar Shopping',desc:'Pick up shells, pearls and Andaman handicrafts',cost:'₹1,000'},
+        {time:'15:00',icon:'🏛️',name:'Samudrika Naval Museum',desc:'Marine life exhibits and Andaman history',cost:'₹50'},
+        {time:'18:00',icon:'✈️',name:'Departure',desc:'Head to Veer Savarkar Airport for your flight home',cost:'₹0'},
+      ]},
+    ]
+  },
+  rishikesh: {
+    emoji:'🧘', tagline:'Adventure Capital of India',
+    weather:{icon:'☀️',temp:'22°C',desc:'Pleasant & Breezy',tags:['Light Layers','Sports Shoes','Sunscreen','Quick-dry Clothes','Waterproof Bag']},
+    attractions:['Laxman Jhula','Ram Jhula','Triveni Ghat','Neelkanth Temple','Rajaji National Park','Beatles Ashram'],
+    attractionEmojis:['🌉','🌉','🕎','🛕','🐯','🎵'],
+    hotels:[
+      {n:'Aloha on the Ganges',p:'₹4,500/night',r:'★★★★★',e:'🏨'},
+      {n:'Zostel Rishikesh',p:'₹600/night',r:'★★★★',e:'🏠'},
+      {n:'Ganga Kinare',p:'₹3,000/night',r:'★★★★',e:'🌊'},
+    ],
+    restaurants:[
+      {n:'The Sitting Elephant',p:'₹400/meal',r:'Multi-Cuisine',e:'🐘'},
+      {n:'Little Buddha Café',p:'₹300/meal',r:'Café & Snacks',e:'☕'},
+      {n:'Chotiwala Restaurant',p:'₹250/meal',r:'North Indian',e:'🍛'},
+    ],
+    days:[
+      {title:'Ghats & Suspension Bridges',activities:[
+        {time:'06:00',icon:'🕎',name:'Triveni Ghat Aarti',desc:'Witness the mesmerising morning Ganga aarti at sunrise',cost:'₹0'},
+        {time:'08:00',icon:'🌉',name:'Laxman Jhula',desc:'Walk across the iconic 450ft suspension bridge over the Ganges',cost:'₹0'},
+        {time:'10:00',icon:'🌉',name:'Ram Jhula',desc:'Another historic bridge with stunning river and mountain views',cost:'₹0'},
+        {time:'13:00',icon:'🍛',name:'Chotiwala Restaurant',desc:'Famous local eatery — try the thali and lassi',cost:'₹250'},
+        {time:'16:00',icon:'🧘',name:'Yoga Class',desc:'Evening yoga session at a riverside ashram',cost:'₹300'},
+        {time:'19:00',icon:'🔥',name:'Ganga Aarti',desc:'Spectacular evening fire aarti at Triveni Ghat',cost:'₹0'},
+      ]},
+      {title:'White Water Rafting',activities:[
+        {time:'08:00',icon:'🛶',name:'River Rafting',desc:'Thrilling Grade 3-4 rapids on the Ganges — 16km stretch',cost:'₹1,200'},
+        {time:'11:00',icon:'🏊',name:'Cliff Jumping',desc:'Jump from rocky cliffs into the crystal-clear Ganges',cost:'₹200'},
+        {time:'13:00',icon:'☕',name:'Little Buddha Café',desc:'Riverside café with great views and healthy food',cost:'₹300'},
+        {time:'15:00',icon:'🎵',name:'Beatles Ashram',desc:'Maharishi Mahesh Yogi’s ashram where The Beatles meditated in 1968',cost:'₹150'},
+        {time:'17:30',icon:'🌅',name:'Sunset at the Ganges',desc:'Watch the golden sunset over the holy river',cost:'₹0'},
+      ]},
+      {title:'Neelkanth Temple & Jungle',activities:[
+        {time:'07:00',icon:'🛕',name:'Neelkanth Mahadev Temple',desc:'Sacred Shiva temple at 1,330m altitude in the forest',cost:'₹0'},
+        {time:'10:00',icon:'🌿',name:'Forest Trek',desc:'Trek through dense sal forests with Himalayan views',cost:'₹400'},
+        {time:'13:00',icon:'🍛',name:'Ashram Prasad Lunch',desc:'Simple sattvic meal at a forest ashram',cost:'₹100'},
+        {time:'15:00',icon:'🐯',name:'Rajaji National Park',desc:'Jeep safari — spot elephants, leopards and deer',cost:'₹600'},
+        {time:'18:00',icon:'🧘',name:'Meditation Session',desc:'Guided meditation by the Ganges at dusk',cost:'₹200'},
+      ]},
+    ]
+  },
+  manali: {
+    emoji:'🏔️', tagline:'Valley of Gods',
+    weather:{icon:'❄️',temp:'5°C',desc:'Cold & Snowy',tags:['Heavy Jacket','Thermals','Snow Boots','Gloves','Sunglasses','Lip Balm']},
+    attractions:['Rohtang Pass','Solang Valley','Hadimba Temple','Old Manali','Beas River','Kullu Valley'],
+    attractionEmojis:['🏔️','⛷️','🛕','🏘️','🌊','🌄'],
+    hotels:[{n:'The Orchard Greens',p:'₹3,500/night',r:'★★★★',e:'🏨'},{n:'Snow Valley Resorts',p:'₹5,000/night',r:'★★★★★',e:'🏔️'},{n:'Johnson Hotel',p:'₹2,000/night',r:'★★★',e:'🏠'}],
+    restaurants:[{n:'Johnson\'s Café',p:'₹500/meal',r:'Continental',e:'☕'},{n:'Drifter\'s Inn',p:'₹400/meal',r:'Backpacker',e:'🍕'},{n:'Mayur Restaurant',p:'₹350/meal',r:'North Indian',e:'🍛'}],
+    days:[
+      {title:'Solang Valley & Snow',activities:[
+        {time:'08:00',icon:'⛷️',name:'Solang Valley',desc:'Skiing, snowboarding and snow activities',cost:'₹800'},
+        {time:'12:00',icon:'🚡',name:'Gondola Ride',desc:'Cable car to stunning panoramic snow views',cost:'₹500'},
+        {time:'14:00',icon:'☕',name:'Café Culture',desc:'Hot soup and momos at mountain café',cost:'₹300'},
+        {time:'16:00',icon:'🏔️',name:'Beas River',desc:'Scenic riverside walk and photography',cost:'₹0'},
+        {time:'19:00',icon:'🔥',name:'Bonfire Evening',desc:'Bonfire with music at your resort',cost:'₹0'},
+      ]},
+      {title:'Rohtang Pass',activities:[
+        {time:'06:30',icon:'🏔️',name:'Rohtang Pass',desc:'Iconic Himalayan pass at 3,978m, permits required',cost:'₹550 permit'},
+        {time:'10:00',icon:'📸',name:'Snow Photography',desc:'Dramatic snow-clad peaks all around',cost:'₹0'},
+        {time:'13:00',icon:'🥢',name:'Dal & Roti Stop',desc:'Simple hot food at a dhaba near the pass',cost:'₹200'},
+        {time:'15:00',icon:'🛕',name:'Hadimba Temple',desc:'Ancient wooden temple in cedar forest',cost:'₹0'},
+        {time:'17:00',icon:'🌆',name:'Old Manali Walk',desc:'Hippie cafés, handicraft shops, local vibe',cost:'₹500'},
+      ]},
+    ]
+  },
+};
+ 
+function getTripData(dest){
+  const k=dest.toLowerCase().replace(/\s+/g,'');
+  for(const key of Object.keys(TRIP_DB)){
+    if(k.includes(key)||key.includes(k)) return {key,data:TRIP_DB[key]};
+  }
+  return null;
+}
+ 
+// ─── GENERATE TRIP ────────────────────────────────────
+async function generateTrip(){
+  const dest=document.getElementById('destination').value.trim();
+  const daysVal=parseInt(document.getElementById('days').value)||3;
+  const budget=parseInt(document.getElementById('budget').value)||15000;
+  const travellers=document.getElementById('travellers').value;
+ 
+  if(!dest){
+    showToast('⚠️ Please enter a destination first!');
+    document.getElementById('destination').focus();
+    return;
+  }
+ 
+  // Show loading
+  document.getElementById('loadingOverlay').classList.add('active');
+  const msgs=['Researching your destination…','Crafting your day-by-day plan…','Finding best hotels & restaurants…','Calculating your budget breakdown…','Almost done — polishing your trip!'];
+  let mi=0;
+  const msgEl=document.getElementById('loadingMsg');
+  const msgInterval=setInterval(()=>{ msgEl.textContent=msgs[mi++%msgs.length]; },900);
+ 
+  await new Promise(r=>setTimeout(r,2800));
+  clearInterval(msgInterval);
+  document.getElementById('loadingOverlay').classList.remove('active');
+ 
+  renderResults(dest, daysVal, budget, travellers);
+}
+ 
+function renderResults(dest, days, budget, travellers, skipSave){
+  const trip = getTripData(dest);
+  const data = trip?.data || generateGenericData(dest, days);
+  const prefs = [...document.querySelectorAll('.pref-btn.active')].map(b=>b.dataset.pref);
+ 
+  // Header
+  document.getElementById('resultDest').textContent = dest;
+  document.getElementById('resultMeta').textContent = `${days} days • ₹${budget.toLocaleString('en-IN')} budget • ${travellers} traveller${travellers==='solo'?'':'s'} • ${prefs.join(', ')||'general'}`;
+ 
+  // Banner with real photo
+  var destKey2 = dest.toLowerCase().replace(/\s+/g,'');
+  var bannerKey = Object.keys(DEST_PHOTOS).find(function(k){ return destKey2.includes(k)||k.includes(destKey2); });
+  var banner = document.getElementById('destBanner');
+  if (bannerKey) {
+    banner.innerHTML = '<img src="'+DEST_PHOTOS[bannerKey]+'" alt="'+dest+'" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" loading="lazy" />'
+      +'<div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(11,31,51,0.8),rgba(11,31,51,0.2));display:flex;align-items:flex-end;padding:28px">'
+        +'<div><div style="font-size:3rem;margin-bottom:8px">'+data.emoji+'</div>'
+        +'<div style="font-family:\'Playfair Display\',serif;font-size:2rem;font-weight:900;color:#fff">'+dest+'</div>'
+        +'<div style="color:rgba(255,255,255,0.75);font-size:0.9rem;margin-top:4px">'+data.tagline+'</div></div>'
+      +'</div>';
+  } else {
+    banner.style.background = 'linear-gradient(135deg,#0B1F33,#1E3A5F)';
+    banner.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:flex-end;padding:28px">'
+      +'<div><div style="font-size:3rem;margin-bottom:8px">'+data.emoji+'</div>'
+      +'<div style="font-family:\'Playfair Display\',serif;font-size:2rem;font-weight:900">'+dest+'</div>'
+      +'<div style="color:rgba(255,255,255,0.7);font-size:0.9rem;margin-top:4px">'+data.tagline+'</div></div></div>';
+  }
+ 
+  // Attraction photos with real images
+  var attrImgs = ATTR_PHOTOS[bannerKey] || [];
+  var apDiv = document.getElementById('attractionPhotos');
+  apDiv.innerHTML = (data.attractions||[]).slice(0,4).map(function(a,i){
+    if(attrImgs[i]) return '<div class="attraction-photo"><img src="'+attrImgs[i]+'" alt="'+a+'" style="width:100%;height:100%;object-fit:cover" loading="lazy" /><div class="attraction-photo-name">'+a+'</div></div>';
+    var em=(data.attractionEmojis&&data.attractionEmojis[i])?data.attractionEmojis[i]:'';
+    return '<div class="attraction-photo"><div class="attraction-photo-placeholder"><span>'+em+'</span><span style="font-size:0.65rem">'+a+'</span></div></div>';
+  }).join('');
+ 
+  // Real OpenStreetMap embed
+  const MAP_COORDS = {
+    goa:       [15.2993, 74.1240],
+    rajasthan: [26.9124, 75.7873],
+    kerala:    [9.9312,  76.2673],
+    manali:    [32.2396, 77.1887],
+    varanasi:  [25.3176, 82.9739],
+    andaman:   [11.7401, 92.6586],
+    rishikesh: [30.0869, 78.2676],
+    ladakh:    [34.1526, 77.5771],
+  };
+  // Map pins
+  const map=document.getElementById('mapContainer');
+  const coords = MAP_COORDS[bannerKey] || [20.5937, 78.9629];
+  const zoom = bannerKey ? 11 : 5;
+  map.innerHTML = `<iframe
+    src="https://www.openstreetmap.org/export/embed.html?bbox=${coords[1]-0.3}%2C${coords[0]-0.2}%2C${coords[1]+0.3}%2C${coords[0]+0.2}&layer=mapnik&marker=${coords[0]}%2C${coords[1]}"
+    style="width:100%;height:100%;border:none;border-radius:var(--radius)"
+    loading="lazy"
+    title="Map of ${dest}"
+  ></iframe>`;
+ 
+  // Day cards
+  const dc=document.getElementById('dayCards');
+  const dayCount=Math.min(days, (data.days||[]).length+2);
+  let html='';
+  for(let i=0;i<days;i++){
+    const d=data.days?.[i] || generateDay(i+1, dest, data);
+    html+=`<div class="day-card">
+      <div class="day-header">
+        <span class="day-number">Day ${i+1}</span>
+        <span class="day-title">${d.title}</span>
+      </div>
+      <ul class="day-activities">
+        ${(d.activities||[]).map(a=>`
+        <li class="day-activity">
+          <span class="activity-time">${a.time}</span>
+          <span class="activity-icon">${a.icon}</span>
+          <div class="activity-info">
+            <div class="activity-name">${a.name}</div>
+            <div class="activity-desc">${a.desc}</div>
+            <span class="activity-cost">${a.cost}</span>
+          </div>
+        </li>`).join('')}
+      </ul>
+    </div>`;
+  }
+  dc.innerHTML=html;
+ 
+  // Budget bars
+  const perDay=Math.floor(budget/days);
+  const stay=Math.floor(budget*0.40);
+  const food=Math.floor(budget*0.25);
+  const travel=Math.floor(budget*0.20);
+  const activities=Math.floor(budget*0.15);
+ 
+  document.getElementById('budgetTotal').textContent=`₹${budget.toLocaleString('en-IN')}`;
+  document.getElementById('budgetBars').innerHTML=[
+    {label:'Stay',pct:40,color:var2('--clay'),val:stay},
+    {label:'Food',pct:25,color:var2('--gold'),val:food},
+    {label:'Travel',pct:20,color:var2('--sage'),val:travel},
+    {label:'Activities',pct:15,color:var2('--terracotta'),val:activities},
+  ].map(b=>`
+    <div class="budget-bar-container">
+      <div class="budget-bar-label"><span>${b.label}</span><span>₹${b.val.toLocaleString('en-IN')}</span></div>
+      <div class="budget-bar"><div class="budget-bar-fill" style="width:${b.pct}%;background:${b.color}"></div></div>
+    </div>`).join('');
+ 
+  // Animate bars after paint
+  setTimeout(()=>{
+    document.querySelectorAll('.budget-bar-fill').forEach(el=>{
+      el.style.width=el.style.width;
+    });
+  },100);
+ 
+  // Weather
+  const w=data.weather||{icon:'🌤️',temp:'28°C',desc:'Pleasant weather',tags:['Comfortable Clothes','Sunscreen']};
+  document.getElementById('weatherIcon').textContent=w.icon;
+  document.getElementById('weatherTemp').textContent=w.temp;
+  document.getElementById('weatherDesc').textContent=w.desc;
+  document.getElementById('weatherTags').innerHTML=w.tags.map(t=>`<span class="weather-tag">📦 ${t}</span>`).join('');
+ 
+  // Hotels
+  document.getElementById('hotelList').innerHTML=(data.hotels||[]).map(h=>`
+    <div class="place-item">
+      <span class="place-emoji">${h.e}</span>
+      <div><div class="place-name">${h.n}</div><div class="place-detail">${h.r}</div></div>
+      <span class="place-price">${h.p}</span>
+    </div>`).join('');
+ 
+  // Restaurants
+  document.getElementById('restaurantList').innerHTML=(data.restaurants||[]).map(r=>`
+    <div class="place-item">
+      <span class="place-emoji">${r.e}</span>
+      <div><div class="place-name">${r.n}</div><div class="place-detail">${r.r}</div></div>
+      <span class="place-price">${r.p}</span>
+    </div>`).join('');
+ 
+  // Show section & scroll
+  const resultsEl=document.getElementById('results');
+  resultsEl.style.display='block';
+  setTimeout(()=>resultsEl.scrollIntoView({behavior:'smooth'}),100);
+  showToast('✦ Your itinerary is ready!');
+
+  // Save trip to backend
+  if (!skipSave) saveTripToBackend(dest, days, budget, travellers, data);
+}
+ 
+async function saveTripToBackend(destination, days, budget, travellers, data) {
+  if (!authToken) { showToast('Sign in to save your trips!'); return; }
+  var prefs = Array.from(document.querySelectorAll('.pref-btn.active')).map(function(b) { return b.dataset.pref; });
+  try {
+    var res = await fetch(API + '/api/trips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify({ destination: destination, days: days, budget: budget, travellers: travellers, preferences: prefs, itinerary: data })
+    });
+    if (res.ok) showToast('Trip saved to your profile! ✦');
+    else { var d = await res.json(); showToast('Save failed: ' + d.error); }
+  } catch(e) { showToast('Server not reachable.'); }
+}
+
+function var2(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+ 
+function generateGenericData(dest,days){
+  return {
+    emoji:'✈️', tagline:`Explore ${dest}`,
+    bg:'linear-gradient(135deg,#1a2e14,#0f1a0a)',
+    weather:{icon:'🌤️',temp:'26°C',desc:'Check local forecast',tags:['Comfortable Clothes','Sunscreen','Water Bottle','Camera']},
+    attractions:[`${dest} City Centre`,`Local Museum`,`Nature Park`,`Heritage Site`,`Local Market`,`Viewpoint`],
+    attractionEmojis:['🏙️','🏛️','🌿','🏛️','🛍️','👁️'],
+    hotels:[
+      {n:`${dest} Grand Hotel`,p:'₹3,500/night',r:'★★★★',e:'🏨'},
+      {n:`Budget Inn ${dest}`,p:'₹800/night',r:'★★★',e:'🏠'},
+      {n:`${dest} Boutique Stay`,p:'₹2,000/night',r:'★★★★',e:'🏡'},
+    ],
+    restaurants:[
+      {n:'Local Dhaba',p:'₹200/meal',r:'Indian',e:'🍛'},
+      {n:'City Bistro',p:'₹500/meal',r:'Multi-Cuisine',e:'🍽️'},
+      {n:'Street Food Corner',p:'₹100/meal',r:'Street Food',e:'🌮'},
+    ],
+    days:[],
+  };
+}
+ 
+function generateDay(num,dest,data){
+  const times=['09:00','11:30','13:30','16:00','19:00'];
+  const activities=[
+    {icon:'🏛️',name:`Explore ${dest} Heritage`,desc:'Visit the historical landmarks of the city',cost:'₹100'},
+    {icon:'🌿',name:'Nature Walk',desc:'Morning walk through a local park or garden',cost:'₹0'},
+    {icon:'🍛',name:'Local Lunch',desc:'Try authentic regional cuisine at a local restaurant',cost:'₹300'},
+    {icon:'🛍️',name:'Local Market',desc:'Browse handicrafts and souvenirs',cost:'₹500'},
+    {icon:'🌅',name:'Evening Sunset',desc:'Find the best spot to watch the sunset',cost:'₹0'},
+  ];
+  return {
+    title:`Day ${num} in ${dest}`,
+    activities: activities.map((a,i)=>({...a, time:times[i]}))
+  };
+}
+ 
+// ─── CHATBOT ──────────────────────────────────────────
+let chatOpen=false;
+const CHAT_GREETINGS=[
+  "Namaste! 🙏 I'm your Wandr travel assistant. Ask me anything — visa info, best seasons, packing tips, or just tell me your dream destination!",
+];
+ 
+function toggleChat(){
+  chatOpen=!chatOpen;
+  const panel=document.getElementById('chatPanel');
+  panel.classList.toggle('open',chatOpen);
+  if(chatOpen && document.getElementById('chatMessages').children.length===0){
+    addBotMsg(CHAT_GREETINGS[0]);
+  }
+}
+ 
+function addBotMsg(text){
+  const msgs=document.getElementById('chatMessages');
+  msgs.innerHTML+=`<div class="msg msg-bot">${text}</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function addUserMsg(text){
+  const msgs=document.getElementById('chatMessages');
+  msgs.innerHTML+=`<div class="msg msg-user">${text}</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function showTyping(){
+  const msgs=document.getElementById('chatMessages');
+  const id='typing-'+Date.now();
+  msgs.innerHTML+=`<div class="typing-indicator" id="${id}"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  return id;
+}
+function removeTyping(id){ document.getElementById(id)?.remove(); }
+ 
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  addUserMsg(text);
+  const tid=showTyping();
+ 
+  // Try Claude API
+  const dest=document.getElementById('destination').value||'India';
+  const systemPrompt=`You are Wandr, a friendly AI travel assistant specialising in Indian travel. Keep answers concise (2-3 sentences max), helpful, and enthusiastic. Current trip being planned: ${dest}. Answer in a warm conversational tone.`;
+ 
+  let reply=null;
+  try {
+    const r=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:200,
+        system:systemPrompt,
+        messages:[{role:"user",content:text}]
+      })
+    });
+    const d=await r.json();
+    reply=d.content?.[0]?.text;
+  } catch(e){}
+ 
+  removeTyping(tid);
+  if(reply){ addBotMsg(reply); }
+  else { addBotMsg(getFallbackReply(text)); }
+}
+ 
+function getFallbackReply(text){
+  const t=text.toLowerCase();
+  if(t.includes('visa')) return "For most Indian citizens, a valid passport is all you need for domestic travel. For international trips, check the embassy website for specific requirements. 🛂";
+  if(t.includes('budget')||t.includes('cheap')) return "For budget travel in India, aim for ₹1,500-2,500/day including stay, food & local transport. Trains and hostels are your best friends! 💸";
+  if(t.includes('best time')||t.includes('season')) return "India's best travel season is typically Oct-March for most destinations. Avoid monsoon (June-Sept) for beach/mountain trips, but Kerala is magical in the rain! 🌦️";
+  if(t.includes('food')||t.includes('eat')) return "India's regional cuisines are incredible! Try local thalis, street chaat, and fresh seafood near the coast. Always eat where locals eat — it's tastier and cheaper! 🍛";
+  if(t.includes('safe')||t.includes('safety')) return "India is generally safe for travellers. Use registered taxis/autos, keep your belongings secure in crowded places, and stay hydrated. Trust your instincts! ✅";
+  return "Great question! India offers something for every type of traveller — from Himalayan peaks to tropical beaches. Tell me more about your travel style and I'll give you personalised suggestions! ✈️";
+}
+ 
+// ─── AUTH ─────────────────────────────────────────────
+const API = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+let currentUser = null;
+let authToken = localStorage.getItem('wandr_token');
+
+async function initAuth() {
+  if (!authToken) return;
+  try {
+    const res = await fetch(API + '/api/auth/me', { headers: { 'Authorization': 'Bearer ' + authToken } });
+    if (res.ok) { currentUser = await res.json(); updateNavForUser(); }
+    else { authToken = null; localStorage.removeItem('wandr_token'); }
+  } catch(e) { /* server offline — stay logged out silently */ }
+}
+initAuth();
+
+function updateNavForUser() {
+  const btn = document.getElementById('authBtn');
+  if (!btn) return;
+  btn.textContent = currentUser ? ((currentUser.avatar || '🧭') + ' ' + currentUser.name.split(' ')[0]) : 'Sign In';
+}
+
+function handleAuthBtn(e) {
+  e.preventDefault();
+  if (currentUser) openProfile(); else openAuthModal();
+}
+
+function openAuthModal() {
+  switchTab('login');
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('regError').style.display = 'none';
+  document.getElementById('authModal').classList.add('open');
+  setTimeout(function() { document.getElementById('loginEmail').focus(); }, 100);
+}
+function closeAuthModal() { document.getElementById('authModal').classList.remove('open'); }
+
+function switchTab(tab) {
+  document.getElementById('formLogin').style.display = tab === 'login' ? 'flex' : 'none';
+  document.getElementById('formRegister').style.display = tab === 'register' ? 'flex' : 'none';
+  document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+}
+
+function showErr(id, msg) {
+  var el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function setBtnState(id, loading, label) {
+  var btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? 'Please wait...' : label;
+}
+
+async function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var password = document.getElementById('loginPassword').value;
+  var errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!email || !password) { showErr('loginError', 'Please enter email and password'); return; }
+  setBtnState('loginBtn', true, 'Sign In →');
+  try {
+    var res = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: password })
+    });
+    var data = await res.json();
+    if (!res.ok) { showErr('loginError', data.error || 'Login failed'); return; }
+    authToken = data.token; currentUser = data.user;
+    localStorage.setItem('wandr_token', authToken);
+    updateNavForUser(); closeAuthModal();
+    document.getElementById('loginPassword').value = '';
+    showToast('Welcome back, ' + currentUser.name.split(' ')[0] + '! ✨');
+  } catch(e) { showErr('loginError', 'Cannot reach server — run: npm start'); }
+  finally { setBtnState('loginBtn', false, 'Sign In →'); }
+}
+
+async function doRegister() {
+  var name = document.getElementById('regName').value.trim();
+  var email = document.getElementById('regEmail').value.trim();
+  var phone = document.getElementById('regPhone').value.trim();
+  var password = document.getElementById('regPassword').value;
+  var errEl = document.getElementById('regError');
+  errEl.style.display = 'none';
+  if (!name || !email || !password) { showErr('regError', 'Name, email and password are required'); return; }
+  if (password.length < 6) { showErr('regError', 'Password must be at least 6 characters'); return; }
+  setBtnState('regBtn', true, 'Create Account →');
+  try {
+    var res = await fetch(API + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, email: email, phone: phone, password: password })
+    });
+    var data = await res.json();
+    if (!res.ok) { showErr('regError', data.error || 'Registration failed'); return; }
+    authToken = data.token; currentUser = data.user;
+    localStorage.setItem('wandr_token', authToken);
+    updateNavForUser(); closeAuthModal();
+    document.getElementById('regPassword').value = '';
+    showToast('Account created! Welcome, ' + currentUser.name.split(' ')[0] + '! 🎉');
+  } catch(e) { showErr('regError', 'Cannot reach server — run: npm start'); }
+  finally { setBtnState('regBtn', false, 'Create Account →'); }
+}
+
+// Enter key in modal
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  if (!document.getElementById('authModal').classList.contains('open')) return;
+  if (document.getElementById('formLogin').style.display !== 'none') doLogin();
+  else doRegister();
+});
+
+function doSignOut() {
+  authToken = null; currentUser = null;
+  localStorage.removeItem('wandr_token');
+  updateNavForUser(); closeProfile();
+  showToast('Signed out. See you soon! 👋');
+}
+
+function openProfile() {
+  document.getElementById('profileAvatar').textContent = currentUser.avatar || '🧭';
+  document.getElementById('profileName').textContent = currentUser.name;
+  document.getElementById('profileEmailDisplay').textContent = currentUser.email;
+  document.getElementById('editName').value   = currentUser.name   || '';
+  document.getElementById('editPhone').value  = currentUser.phone  || '';
+  document.getElementById('editBio').value    = currentUser.bio    || '';
+  document.getElementById('editAvatar').value = currentUser.avatar || '';
+  document.getElementById('profilePanel').classList.add('open');
+  loadStats();
+  loadSavedTrips();
+}
+function closeProfile() { document.getElementById('profilePanel').classList.remove('open'); }
+
+function toggleEditProfile() {
+  var form = document.getElementById('editProfileForm');
+  var arrow = document.getElementById('editArrow');
+  var isOpen = form.style.display === 'flex';
+  form.style.display = isOpen ? 'none' : 'flex';
+  arrow.innerHTML = isOpen ? '&#x25BC;' : '&#x25B2;';
+}
+
+async function saveProfile() {
+  var errEl = document.getElementById('profileEditError');
+  errEl.style.display = 'none';
+  var fields = {
+    name:   document.getElementById('editName').value.trim(),
+    phone:  document.getElementById('editPhone').value.trim(),
+    bio:    document.getElementById('editBio').value.trim(),
+    avatar: document.getElementById('editAvatar').value.trim()
+  };
+  try {
+    var res = await fetch(API + '/api/auth/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify(fields)
+    });
+    var data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+    currentUser = data;
+    document.getElementById('profileAvatar').textContent = currentUser.avatar || '🧭';
+    document.getElementById('profileName').textContent = currentUser.name;
+    updateNavForUser();
+    showToast('Profile updated! ✔');
+  } catch(e) { errEl.textContent = 'Server not reachable'; errEl.style.display = 'block'; }
+}
+
+async function changePassword() {
+  var errEl = document.getElementById('profileEditError');
+  errEl.style.display = 'none';
+  var currentPassword = document.getElementById('pwdCurrent').value;
+  var newPassword = document.getElementById('pwdNew').value;
+  if (!currentPassword || !newPassword) { errEl.textContent = 'Fill in both password fields'; errEl.style.display = 'block'; return; }
+  try {
+    var res = await fetch(API + '/api/auth/password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword })
+    });
+    var data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+    document.getElementById('pwdCurrent').value = '';
+    document.getElementById('pwdNew').value = '';
+    showToast('Password changed! 🔒');
+  } catch(e) { errEl.textContent = 'Server not reachable'; errEl.style.display = 'block'; }
+}
+
+async function loadStats() {
+  try {
+    var res = await fetch(API + '/api/stats', { headers: { 'Authorization': 'Bearer ' + authToken } });
+    if (!res.ok) return;
+    var stats = await res.json();
+    document.getElementById('statTrips').textContent  = stats.total_trips  || 0;
+    document.getElementById('statDays').textContent   = stats.total_days   || 0;
+    document.getElementById('statBudget').textContent = '₹' + Number(stats.total_budget || 0).toLocaleString('en-IN');
+  } catch(e) {}
+}
+
+async function loadSavedTrips() {
+  var list = document.getElementById('savedTripsList');
+  list.innerHTML = '<div style="color:var(--text-faint);font-size:0.85rem">Loading...</div>';
+  try {
+    var res = await fetch(API + '/api/trips', { headers: { 'Authorization': 'Bearer ' + authToken } });
+    if (!res.ok) { list.innerHTML = '<div style="color:var(--text-faint);font-size:0.85rem">Could not load trips.</div>'; return; }
+    var trips = await res.json();
+    if (!trips.length) { list.innerHTML = '<div style="color:var(--text-faint);font-size:0.85rem">No trips saved yet. Plan one!</div>'; return; }
+    list.innerHTML = trips.map(function(t) {
+      var emoji = (t.itinerary && t.itinerary.emoji) ? t.itinerary.emoji : '✈️';
+      var date = new Date(t.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      return '<div class="saved-trip-card" onclick="reloadTrip(' + t.id + ')">' +
+        '<span class="saved-trip-emoji">' + emoji + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="saved-trip-dest">' + t.destination + '</div>' +
+          '<div class="saved-trip-meta">' + t.days + ' days &bull; &#x20B9;' + Number(t.budget).toLocaleString('en-IN') + ' &bull; ' + t.travellers + '</div>' +
+          '<div class="saved-trip-meta" style="font-size:0.68rem;opacity:0.6">' + date + '</div>' +
+        '</div>' +
+        '<button class="saved-trip-del" onclick="deleteTrip(event,' + t.id + ')" title="Delete">🗑</button>' +
+      '</div>';
+    }).join('');
+  } catch(e) { list.innerHTML = '<div style="color:var(--text-faint);font-size:0.85rem">Server not reachable.</div>'; }
+}
+
+async function deleteTrip(e, id) {
+  e.stopPropagation();
+  if (!confirm('Delete this trip?')) return;
+  try {
+    await fetch(API + '/api/trips/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + authToken } });
+    loadSavedTrips(); loadStats();
+    showToast('Trip deleted.');
+  } catch(e) { showToast('Could not delete.'); }
+}
+
+async function reloadTrip(id) {
+  try {
+    var res = await fetch(API + '/api/trips/' + id, { headers: { 'Authorization': 'Bearer ' + authToken } });
+    var trip = await res.json();
+    document.getElementById('destination').value = trip.destination;
+    document.getElementById('days').value        = trip.days;
+    document.getElementById('budget').value      = trip.budget;
+    document.getElementById('travellers').value  = trip.travellers;
+    closeProfile();
+    renderResults(trip.destination, trip.days, trip.budget, trip.travellers, true);
+    showToast('Loaded: ' + trip.destination + ' ✦');
+  } catch(e) { showToast('Could not load trip.'); }
+}
+
+// ─── TOAST ────────────────────────────────────────────
+let toastTimeout;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout=setTimeout(()=>t.classList.remove('show'),3000);
+}
+ 
+// ─── CHATBOT ENTER KEY ────────────────────────────────
+document.getElementById('chatInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter') sendChat();
+});
+ 
+// ─── INTERSECTION OBSERVER (fade in sections) ─────────
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.style.opacity=1; e.target.style.transform='translateY(0)'; }
+  });
+},{threshold:0.1});
+ 
+document.querySelectorAll('.feat-card,.dest-card').forEach(el=>{
+  el.style.opacity=0;
+  el.style.transform='translateY(30px)';
+  el.style.transition='opacity 0.6s ease, transform 0.6s ease';
+  observer.observe(el);
+});
+ 
+console.log('%c✦ Wandr AI Trip Planner', 'color:#E8B84B;font-size:1.5rem;font-weight:bold;font-family:serif');
+console.log('%cReady to explore 🌍', 'color:#7A9E5F;font-size:0.9rem');
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('wandr_theme', next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+// Apply saved theme on load
+(function(){
+  const saved = localStorage.getItem('wandr_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = saved === 'dark' ? '☀️' : '🌙';
+})();
+</script>
+
+</body>
+</html>
+ 
